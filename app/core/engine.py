@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from typing import Any
 
 from sqlalchemy import text
@@ -161,5 +162,38 @@ def structural_diff(
         new = incoming_flat.get(path)
         if old == new:
             continue
-        diffs.append({"path": path, "old": old, "new": new})
+        diffs.append({"path": path, "old": old, "new": new, "severity": None})
     return diffs
+
+
+def classify_safe_changes(diffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for item in diffs:
+        if item["old"] is None and item["new"] is not None:
+            item["severity"] = "SAFE"
+    return diffs
+
+
+async def log_drift_violations(
+    db: AsyncSession,
+    *,
+    endpoint_id: str,
+    fingerprint: str,
+    diffs: list[dict[str, Any]],
+) -> None:
+    for item in diffs:
+        if item["severity"] is None:
+            continue
+        await db.execute(
+            text(
+                """
+                INSERT INTO contract_drift_violations(endpoint_id, observed_fingerprint, severity, diff_payload)
+                VALUES (:endpoint_id::uuid, :fingerprint, CAST(:severity AS change_severity), CAST(:diff_payload AS jsonb))
+                """
+            ),
+            {
+                "endpoint_id": endpoint_id,
+                "fingerprint": fingerprint,
+                "severity": item["severity"],
+                "diff_payload": json.dumps({"path": item["path"], "old": item["old"], "new": item["new"]}),
+            },
+        )
