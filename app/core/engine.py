@@ -173,6 +173,16 @@ def classify_safe_changes(diffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return diffs
 
 
+def classify_risky_mutations(diffs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    primitive_types = {"int", "float", "string", "bool"}
+    for item in diffs:
+        if item["severity"] is not None:
+            continue
+        if item["old"] in primitive_types and item["new"] in primitive_types and item["old"] != item["new"]:
+            item["severity"] = "RISKY"
+    return diffs
+
+
 async def log_drift_violations(
     db: AsyncSession,
     *,
