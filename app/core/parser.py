@@ -18,6 +18,14 @@ def _primitive_type(value: Any) -> str:
     return "unknown"
 
 
+def normalize_types(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {k: normalize_types(v) for k, v in sorted(value.items(), key=lambda kv: kv[0])}
+    if isinstance(value, list):
+        return [normalize_types(v) for v in value]
+    return _primitive_type(value)
+
+
 def structural_ast(value: Any) -> str:
     if isinstance(value, dict):
         parts = [f"{k}:{structural_ast(v)}" for k, v in sorted(value.items(), key=lambda kv: kv[0])]
