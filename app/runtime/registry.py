@@ -88,18 +88,41 @@ async def upsert_schema_version(
     canonical_schema: dict[str, Any],
     classification: str,
 ) -> tuple[str, str, SchemaVersionRecord, bool]:
+    endpoint_id, endpoint_name = await ensure_endpoint(
+        db,
+        namespace=namespace,
+        service_name=service_name,
+        http_method=http_method,
+        route_path=route_path,
+    )
+    await db.commit()
+
+    existing_fast = await db.execute(
+        text(
+            """
+            SELECT id::text, endpoint_id::text, version, fingerprint, canonical_schema,
+                   compatibility_classification, previous_version_id::text, is_current
+            FROM contract_schema_versions
+            WHERE endpoint_id = CAST(:endpoint_id AS uuid)
+              AND fingerprint = :fingerprint
+            LIMIT 1
+            """
+        ),
+        {"endpoint_id": endpoint_id, "fingerprint": fingerprint},
+    )
+    fast_row = existing_fast.first()
+    if fast_row is not None:
+        return endpoint_id, endpoint_name, SchemaVersionRecord(
+            id=fast_row[0], endpoint_id=fast_row[1], version=fast_row[2], fingerprint=fast_row[3],
+            canonical_schema=fast_row[4], compatibility_classification=fast_row[5],
+            previous_version_id=fast_row[6], is_current=fast_row[7]
+        ), False
+
     lock = _lock_id(namespace, service_name, http_method, route_path)
-    async with db.begin():
+    try:
         lock_start = time.perf_counter()
         await db.execute(text("SELECT pg_advisory_xact_lock(:id)"), {"id": lock})
         ADVISORY_LOCK_WAIT_SECONDS.observe(time.perf_counter() - lock_start)
-        endpoint_id, endpoint_name = await ensure_endpoint(
-            db,
-            namespace=namespace,
-            service_name=service_name,
-            http_method=http_method,
-            route_path=route_path,
-        )
         current = await get_current_schema(db, endpoint_id)
 
         existing = await db.execute(
@@ -158,6 +181,10 @@ async def upsert_schema_version(
             },
         )
         version_id = inserted.scalar_one()
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
 
     return endpoint_id, endpoint_name, SchemaVersionRecord(
         id=version_id,

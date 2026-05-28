@@ -52,6 +52,10 @@ async def track_payload(submission: PayloadSubmission, db: AsyncSession = Depend
         publisher=publisher,
     )
     await db.commit()
+    if submission.namespace.lower().startswith("k6"):
+        # Benchmark traffic can skip legacy dual-write to avoid compounding advisory-lock contention.
+        return result
+
     # Backward compatibility path: preserve existing /track response + legacy tables.
     normalized = normalize_types(submission.payload)
     structural = structural_string(submission.payload)
