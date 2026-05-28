@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+import contextlib
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import Depends, FastAPI
@@ -21,6 +24,7 @@ from app.db import close_db, get_db
 from app.runtime.events import build_default_publisher
 from app.runtime.metrics import metrics_payload
 from app.runtime.service import track_contract
+from app.workers.outbox_worker import run_outbox_worker
 
 
 class PayloadSubmission(BaseModel):
@@ -31,12 +35,21 @@ class PayloadSubmission(BaseModel):
     payload: dict[str, Any]
 
 
-app = FastAPI(title="SchemaPilot Contract Guard", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    stop_event = asyncio.Event()
+    worker_task = asyncio.create_task(run_outbox_worker(stop_event))
+    try:
+        yield
+    finally:
+        stop_event.set()
+        worker_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await worker_task
+        await close_db()
 
 
-@app.on_event("shutdown")
-async def _shutdown() -> None:
-    await close_db()
+app = FastAPI(title="SchemaPilot Contract Guard", version="1.0.0", lifespan=lifespan)
 
 
 @app.post("/track")

@@ -14,7 +14,12 @@ WEBHOOK_PUBLISH_LATENCY_SECONDS = Histogram(
     "webhook_publish_latency_seconds",
     "Webhook delivery latency",
 )
+OUTBOX_DELIVERY_LATENCY_SECONDS = Histogram(
+    "outbox_delivery_latency_seconds",
+    "Seconds from outbox creation to successful webhook delivery",
+)
 DLQ_SIZE = Gauge("dlq_size", "Current DLQ row count")
+OUTBOX_PENDING_GAUGE = Gauge("outbox_pending_gauge", "Current pending webhook outbox rows")
 DRIFT_COUNT_TOTAL = Counter("drift_count_total", "Drift count", ["severity", "endpoint_id"])
 COMPATIBILITY_CLASSIFICATION_TOTAL = Counter(
     "compatibility_classification_total", "Compatibility classification count", ["classification"]

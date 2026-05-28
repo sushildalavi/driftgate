@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.runtime.metrics import DLQ_SIZE, WEBHOOK_DELIVERY_FAILURES_TOTAL, WEBHOOK_PUBLISH_LATENCY_SECONDS
 
 
-async def _upsert_dlq(
+async def upsert_dlq(
     db: AsyncSession,
     *,
     event_id: str,
@@ -63,6 +63,7 @@ async def deliver_with_retry(
     payload: dict[str, Any],
     max_attempts: int = 3,
     client: httpx.AsyncClient | None = None,
+    persist_dlq: bool = True,
 ) -> bool:
     if not subscription.get("active", True):
         return False
@@ -119,16 +120,17 @@ async def deliver_with_retry(
                 },
             )
             if attempt == max_attempts:
-                await _upsert_dlq(
-                    db,
-                    event_id=event_id,
-                    consumer_id=consumer_id,
-                    endpoint_id=endpoint_id,
-                    target_url=target_url,
-                    payload={"event": payload, "failed_at": now},
-                    failure_reason=reason,
-                    attempt_count=attempt,
-                )
+                if persist_dlq:
+                    await upsert_dlq(
+                        db,
+                        event_id=event_id,
+                        consumer_id=consumer_id,
+                        endpoint_id=endpoint_id,
+                        target_url=target_url,
+                        payload={"event": payload, "failed_at": now},
+                        failure_reason=reason,
+                        attempt_count=attempt,
+                    )
                 await db.commit()
                 WEBHOOK_PUBLISH_LATENCY_SECONDS.observe((datetime.now(timezone.utc) - attempt_started).total_seconds())
                 return False

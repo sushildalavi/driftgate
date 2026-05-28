@@ -67,8 +67,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://schemapilot:dev@postgres:5432/schemapilot_runtime
       DATABASE_URL_SYNC: postgresql://schemapilot:dev@postgres:5432/schemapilot_runtime
-      DB_POOL_SIZE: ${DB_POOL_SIZE:-15}
-      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-25}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
     ports:

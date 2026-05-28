@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 from typing import Protocol
 
+from app.runtime.metrics import KAFKA_PUBLISH_FAILURES_TOTAL
 from app.runtime.models import DriftEvent
+
+logger = logging.getLogger(__name__)
 
 
 class EventPublisher(Protocol):
@@ -56,8 +60,25 @@ async def publish_with_retry(publisher: EventPublisher, event: DriftEvent, retri
             wait *= 2
 
 
+def publish_fire_and_forget(publisher: EventPublisher, event: DriftEvent) -> None:
+    async def _run() -> None:
+        try:
+            await publish_with_retry(publisher, event)
+        except Exception:
+            KAFKA_PUBLISH_FAILURES_TOTAL.inc()
+            logger.exception("Kafka publish failed for event_id=%s", event.event_id)
+
+    asyncio.create_task(_run())
+
+
 def build_default_publisher() -> EventPublisher:
     enabled = os.getenv("KAFKA_ENABLED", "false").lower() == "true"
     if not enabled:
         return NoopEventPublisher()
+
+    # Local docker default: single-broker durability/perf tradeoff.
+    _acks = os.getenv("KAFKA_ACKS", "1")
+    if _acks != "1":
+        os.environ["KAFKA_ACKS"] = "1"
+
     return NoopEventPublisher()
