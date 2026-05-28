@@ -19,25 +19,6 @@ It gives you two complementary capabilities in this repo:
 
 ---
 
-## Screenshots (Playwright-generated)
-
-### Dashboard Overview
-![Dashboard](docs/screenshots/01-dashboard.png)
-
-### Dashboard Lower Panels (Endpoints + Trends)
-![Dashboard Lower](docs/screenshots/02-dashboard-lower.png)
-
-### Endpoint Detail (Diffs)
-![Endpoint Detail](docs/screenshots/03-endpoint-detail.png)
-
-### Schema Viewer
-![Schema Viewer](docs/screenshots/04-schema-viewer.png)
-
-### Diff History
-![Diff History](docs/screenshots/05-diff-history.png)
-
----
-
 ## Why SchemaPilot
 
 In distributed systems, services evolve independently and break consumers silently.
