@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VENV_DIR="${ROOT_DIR}/.venv"
+
+python3 -m venv "${VENV_DIR}"
+source "${VENV_DIR}/bin/activate"
+python -m pip install --upgrade pip
+python -m pip install -r "${ROOT_DIR}/requirements.txt"

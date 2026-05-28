@@ -143,7 +143,6 @@ erDiagram
 - `frontend/` — React dashboard and visual components
 - `config/apis.yaml` — endpoint registry for scheduled monitor
 - `drift-simulator/` — changing API payload source for local drift demos
-- `docs/screenshots/` — Playwright screenshots
 - `app/` — runtime contract-guard module (`/track`, metrics, parser/engine)
 - `migrations/00*_contract_guard*.sql` — runtime guard SQL migrations
 - `tests/simulate_drift.py` — 5000-request concurrency simulation harness
@@ -154,7 +153,6 @@ erDiagram
 
 ### Prerequisites
 - Docker / Docker Compose
-- Node.js (only needed if you run screenshot generation locally outside Docker)
 
 ### Start stack
 
@@ -280,22 +278,6 @@ The harness validates:
 Output artifact:
 
 - `docs/benchmarks/schema_pilot_simulation_5000.json`
-
----
-
-## Regenerating Screenshots (Playwright)
-
-```bash
-# Requires frontend running at http://localhost:5174
-node take-screenshots.mjs
-```
-
-Outputs:
-- `docs/screenshots/01-dashboard.png`
-- `docs/screenshots/02-dashboard-lower.png`
-- `docs/screenshots/03-endpoint-detail.png`
-- `docs/screenshots/04-schema-viewer.png`
-- `docs/screenshots/05-diff-history.png`
 
 ---
 
