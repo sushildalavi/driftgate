@@ -26,6 +26,15 @@ services:
       timeout: 3s
       retries: 5
 
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: driftgate_documents
+
   backend:
     build: ./backend
     environment:
@@ -39,6 +48,9 @@ services:
       FETCH_TIMEOUT_SEC: 10
       RAW_BODY_MAX_BYTES: 262144
       RAW_RETENTION_PER_ENDPOINT: 10
+      DOCUMENT_STORE_BACKEND: mongo
+      DOCUMENT_STORE_URI: mongodb://mongo:27017
+      DOCUMENT_STORE_DATABASE: driftgate_documents
     volumes:
       - ./config:/app/config:ro
     ports:
@@ -47,6 +59,8 @@ services:
       postgres:
         condition: service_healthy
       simulator:
+        condition: service_started
+      mongo:
         condition: service_started
 
   frontend:
@@ -85,11 +99,16 @@ services:
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
+      DOCUMENT_STORE_BACKEND: mongo
+      DOCUMENT_STORE_URI: mongodb://mongo:27017
+      DOCUMENT_STORE_DATABASE: driftgate_documents
     ports:
       - "8018:8018"
     depends_on:
       postgres:
         condition: service_healthy
+      mongo:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8018/api/v1/metrics')"]
       interval: 10s
@@ -98,3 +117,4 @@ services:
 
 volumes:
   pgdata:
+  mongodata:
