@@ -4,7 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
+from app.runtime.events import build_default_publisher
 from app.runtime.document_store import DocumentStore
+from app.runtime.drift_event_dlq import (
+    get_event_row,
+    list_event_dlq,
+    replay_event_dlq,
+)
 from app.runtime.webhook import (
     get_dlq_entry,
     list_delivery_attempts,
@@ -44,6 +50,40 @@ async def replay_webhook_dlq(
     result = await replay_dlq_entry(db, dlq_id=dlq_id, document_store=_document_store(request))
     if not result.get("replayed") and result.get("error") == "dlq_not_found":
         raise HTTPException(404, "dlq entry not found")
+    return result
+
+
+@router.get("/drift-event-dlq")
+async def drift_event_dlq(
+    db: AsyncSession = Depends(get_db),
+    limit: int = Query(50, ge=1, le=200),
+) -> list[dict]:
+    return await list_event_dlq(db, limit=limit)
+
+
+@router.get("/drift-event-dlq/{dlq_id}")
+async def drift_event_dlq_entry(dlq_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+    entry = await get_event_row(db, dlq_id)
+    if entry is None:
+        raise HTTPException(404, "drift event dlq entry not found")
+    return entry
+
+
+@router.post("/drift-event-dlq/{dlq_id}/replay")
+async def replay_drift_event_dlq(
+    dlq_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    publisher = getattr(request.app.state, "event_publisher", None) or build_default_publisher()
+    result = await replay_event_dlq(
+        db,
+        dlq_id=dlq_id,
+        publisher=publisher,
+        document_store=_document_store(request),
+    )
+    if not result.get("replayed") and result.get("error") == "dlq_not_found":
+        raise HTTPException(404, "drift event dlq entry not found")
     return result
 
 

@@ -26,7 +26,7 @@ from app.core.engine import (
     structural_diff,
 )
 from app.core.parser import fingerprint_schema, normalize_types, structural_string
-from app.db import close_db, get_db
+from app.db import SessionLocal, close_db, get_db
 from app.runtime.document_store import build_document_store
 from app.runtime.contract_review import build_review_provider
 from app.runtime.events import build_default_publisher
@@ -67,8 +67,9 @@ app = FastAPI(title="DriftGate Contract Guard", version="1.0.0", lifespan=lifesp
 app.state.document_store = document_store
 app.state.contract_review_provider = contract_review_provider
 app.state.event_publisher = event_publisher
+app.state.runtime_session_factory = SessionLocal
 
-frontend_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5175").split(",") if origin.strip()]
+frontend_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=frontend_origins,
@@ -106,6 +107,7 @@ async def track_payload(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     publisher = getattr(request.app.state, "event_publisher", event_publisher)
+    benchmark_mode = submission.namespace.lower().startswith("k6")
     result = await track_contract(
         db,
         namespace=submission.namespace,
@@ -114,10 +116,11 @@ async def track_payload(
         route_path=submission.route_path,
         payload=submission.payload,
         publisher=publisher,
-        document_store=getattr(request.app.state, "document_store", None),
+        session_factory=getattr(request.app.state, "runtime_session_factory", SessionLocal),
+        document_store=None if benchmark_mode else getattr(request.app.state, "document_store", None),
     )
     await db.commit()
-    if submission.namespace.lower().startswith("k6"):
+    if benchmark_mode:
         # Benchmark traffic can skip legacy dual-write to avoid compounding advisory-lock contention.
         return result
 
