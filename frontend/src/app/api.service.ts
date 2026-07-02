@@ -15,7 +15,7 @@ import {
   SubscriptionRecord,
 } from './models';
 
-interface OverviewBundle {
+export interface OverviewBundle {
   metrics: MonitorMetrics;
   endpoints: EndpointRecord[];
   diffs: DiffRecord[];

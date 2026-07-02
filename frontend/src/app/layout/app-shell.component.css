@@ -1,0 +1,170 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at top left, rgba(77, 102, 255, 0.24), transparent 28%),
+    radial-gradient(circle at top right, rgba(255, 123, 92, 0.16), transparent 24%),
+    linear-gradient(180deg, #07101e 0%, #0d1524 46%, #0b1321 100%);
+  color: #eff4ff;
+}
+
+.sidebar {
+  padding: 32px 24px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(6, 11, 22, 0.78);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7c8cff, #f08b5f);
+  color: #09101b;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8ea0c8;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.sidebar h1 {
+  font-size: 1.7rem;
+}
+
+.sidebar-copy {
+  color: #b7c4df;
+  line-height: 1.6;
+}
+
+.sidebar-chips {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-chips span,
+.sidebar-note {
+  color: #9fb0d1;
+  font-size: 0.95rem;
+}
+
+.nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav a,
+.sidebar-link {
+  color: #dce7ff;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.nav a:hover,
+.nav a.active,
+.sidebar-link:hover {
+  transform: translateX(4px);
+  background: rgba(124, 140, 255, 0.14);
+  border-color: rgba(124, 140, 255, 0.4);
+}
+
+.sidebar-note {
+  margin-top: auto;
+  display: grid;
+  gap: 6px;
+}
+
+.main {
+  padding: 32px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.topbar h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.02;
+  max-width: 14ch;
+  margin-top: 10px;
+}
+
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.content {
+  animation: rise 0.38s ease both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .topbar {
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
+  }
+}

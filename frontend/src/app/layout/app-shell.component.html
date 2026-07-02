@@ -1,0 +1,57 @@
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">DG</span>
+      <div>
+        <p class="eyebrow">Azure-ready</p>
+        <h1>DriftGate</h1>
+      </div>
+    </div>
+
+    <p class="sidebar-copy">
+      Local-first contract governance for schema drift, webhook reliability, and evidence-backed review.
+    </p>
+
+    <div class="sidebar-chips">
+      <span>Azure Service Bus-ready</span>
+      <span>Cosmos-compatible Mongo document store</span>
+      <span>Docker-first runtime</span>
+    </div>
+
+    <nav class="nav">
+      <a routerLink="/app/overview" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Overview</a>
+      <a routerLink="/app/registry" routerLinkActive="active">Schema registry</a>
+      <a routerLink="/app/diffs" routerLinkActive="active">Diff viewer</a>
+      <a routerLink="/app/reliability" routerLinkActive="active">Reliability</a>
+      <a routerLink="/app/documents" routerLinkActive="active">Documents</a>
+      <a routerLink="/app/review" routerLinkActive="active">Contract review</a>
+    </nav>
+
+    <div class="sidebar-note">
+      <span>Runtime API</span>
+      <strong>FastAPI on 8018</strong>
+      <span>Monitor API on 8080</span>
+      <a routerLink="/" class="sidebar-link">Public product site</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Application shell</p>
+        <h2>Control center for drift, delivery, and review.</h2>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="button secondary" routerLink="/">Public landing</a>
+        <a class="button" href="https://github.com/sushildalavi/driftgate" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </div>
+    </header>
+
+    <section class="content">
+      <router-outlet />
+    </section>
+  </main>
+</div>

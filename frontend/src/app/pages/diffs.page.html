@@ -6,29 +6,45 @@
           <h3>Schema drift diff viewer</h3>
           <p>Recent diffs across monitor and runtime sources.</p>
         </div>
-        <span class="tag">{{ diffs.length }}</span>
+        <div class="tag-row">
+          <a class="tag" routerLink="/app/review">Open review</a>
+          <span class="tag">{{ diffs.length }}</span>
+        </div>
       </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Severity</th>
-            <th>Change</th>
-            <th>Path</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (diff of diffs; track diff.id) {
+      @if (diffs.length) {
+        <table class="table">
+          <thead>
             <tr>
-              <td><span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span></td>
-              <td>{{ diff.change_type }}</td>
-              <td class="mono">{{ diff.path }}</td>
-              <td>{{ diff.message }}</td>
+              <th>Severity</th>
+              <th>Change</th>
+              <th>Path</th>
+              <th>Message</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (diff of diffs; track diff.id) {
+              <tr>
+                <td><span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span></td>
+                <td>{{ diff.change_type }}</td>
+                <td class="mono">{{ diff.path }}</td>
+                <td>{{ diff.message }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty-state">
+          <strong>No diffs found.</strong>
+          <p>Capture a breaking or risky change to surface the diff viewer.</p>
+        </div>
+      }
+    </section>
+  </div>
+} @else {
+  <div class="page">
+    <section class="card">
+      <div class="skeleton card"></div>
     </section>
   </div>
 }

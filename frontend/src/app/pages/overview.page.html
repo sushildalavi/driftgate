@@ -27,13 +27,22 @@
       <article class="card">
         <div class="card-header">
           <h3>Severity mix</h3>
-          <a class="tag" routerLink="/diffs">Open diff viewer</a>
+          <a class="tag" routerLink="/app/diffs">Open diff viewer</a>
         </div>
         <div class="tag-row">
-          @for (entry of overview.metrics.severity_counts | keyvalue; track entry.key) {
-            <span class="tag" [class.breaking]="entry.key === 'BREAKING'" [class.risky]="entry.key === 'RISKY'">
-              {{ entry.key }} {{ entry.value }}
-            </span>
+          @if (overview.metrics.severity_counts | keyvalue; as severityEntries) {
+            @if (severityEntries.length) {
+              @for (entry of severityEntries; track entry.key) {
+                <span class="tag" [class.breaking]="entry.key === 'BREAKING'" [class.risky]="entry.key === 'RISKY'">
+                  {{ entry.key }} {{ entry.value }}
+                </span>
+              }
+            } @else {
+              <div class="empty-state">
+                <strong>No severity data yet.</strong>
+                <p>Track runtime traffic to populate contract risk signals.</p>
+              </div>
+            }
           }
         </div>
       </article>
@@ -41,20 +50,27 @@
       <article class="card">
         <div class="card-header">
           <h3>Latest endpoints</h3>
-          <a class="tag" routerLink="/registry">Schema registry</a>
+          <a class="tag" routerLink="/app/registry">Schema registry</a>
         </div>
-        <div class="stack">
-          @for (endpoint of overview.endpoints.slice(0, 5); track trackById($index, endpoint)) {
-            <div class="tag-row">
-              <a class="tag" [routerLink]="['/registry', endpoint.id]">{{ endpoint.name }}</a>
-              <span class="tag">{{ endpoint.method }}</span>
-              <span class="tag">{{ endpoint.provider }}</span>
-              @if (endpoint.latest_snapshot_hash) {
-                <span class="tag mono">{{ endpoint.latest_snapshot_hash.slice(0, 10) }}…</span>
-              }
-            </div>
-          }
-        </div>
+        @if (overview.endpoints.length) {
+          <div class="stack">
+            @for (endpoint of overview.endpoints.slice(0, 5); track trackById($index, endpoint)) {
+              <div class="tag-row">
+                <a class="tag" [routerLink]="['/app/registry', endpoint.id]">{{ endpoint.name }}</a>
+                <span class="tag">{{ endpoint.method }}</span>
+                <span class="tag">{{ endpoint.provider }}</span>
+                @if (endpoint.latest_snapshot_hash) {
+                  <span class="tag mono">{{ endpoint.latest_snapshot_hash.slice(0, 10) }}…</span>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No endpoints registered yet.</strong>
+            <p>Send a tracked request to seed the registry.</p>
+          </div>
+        }
       </article>
     </section>
 
@@ -64,50 +80,71 @@
           <h3>Recent drift</h3>
           <span class="meta">Monitor output</span>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Severity</th>
-              <th>Path</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (diff of overview.diffs.slice(0, 6); track trackById($index, diff)) {
+        @if (overview.diffs.length) {
+          <table class="table">
+            <thead>
               <tr>
-                <td><span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span></td>
-                <td class="mono">{{ diff.path }}</td>
-                <td>{{ diff.message }}</td>
+                <th>Severity</th>
+                <th>Path</th>
+                <th>Message</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (diff of overview.diffs.slice(0, 6); track trackById($index, diff)) {
+                <tr>
+                  <td><span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span></td>
+                  <td class="mono">{{ diff.path }}</td>
+                  <td>{{ diff.message }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="empty-state">
+            <strong>No drift yet.</strong>
+            <p>Once the runtime detects a schema difference, the diff viewer will populate here.</p>
+          </div>
+        }
       </article>
 
       <article class="card">
         <div class="card-header">
           <h3>Replay queue</h3>
-          <a class="tag" routerLink="/reliability">DLQ dashboard</a>
+          <a class="tag" routerLink="/app/reliability">DLQ dashboard</a>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Consumer</th>
-              <th>Reason</th>
-              <th>Attempts</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (entry of overview.dlq.slice(0, 6); track trackById($index, entry)) {
+        @if (overview.dlq.length) {
+          <table class="table">
+            <thead>
               <tr>
-                <td>{{ entry.consumer_id }}</td>
-                <td>{{ entry.failure_reason }}</td>
-                <td>{{ entry.attempt_count }}</td>
+                <th>Consumer</th>
+                <th>Reason</th>
+                <th>Attempts</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (entry of overview.dlq.slice(0, 6); track trackById($index, entry)) {
+                <tr>
+                  <td>{{ entry.consumer_id }}</td>
+                  <td>{{ entry.failure_reason }}</td>
+                  <td>{{ entry.attempt_count }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="empty-state">
+            <strong>DLQ is empty.</strong>
+            <p>Failed deliveries will appear here once retries are exhausted.</p>
+          </div>
+        }
       </article>
+    </section>
+  </div>
+} @else {
+  <div class="page">
+    <section class="card">
+      <div class="skeleton card"></div>
+      <div class="skeleton card"></div>
     </section>
   </div>
 }

@@ -1,7 +1,7 @@
 <div class="page">
   @if (replayMessage()) {
     <section class="card">
-      <p>{{ replayMessage() }}</p>
+      <p class="banner">{{ replayMessage() }}</p>
     </section>
   }
 
@@ -12,26 +12,38 @@
           <h3>Retry and DLQ dashboard</h3>
           <p>Failed webhook deliveries and recovery actions.</p>
         </div>
-        <span class="tag">DLQ</span>
+        <div class="tag-row">
+          <a class="tag" routerLink="/app/review">Open review</a>
+          <span class="tag">DLQ</span>
+        </div>
       </div>
 
       @if (dlq$ | async; as dlqEntries) {
-        <div class="stack">
-          @for (entry of dlqEntries; track entry.id) {
-            <div class="card">
-              <div class="card-header">
-                <strong>{{ entry.consumer_id }}</strong>
-                <button class="button" type="button" (click)="replay(entry.id)">Replay</button>
+        @if (dlqEntries.length) {
+          <div class="stack">
+            @for (entry of dlqEntries; track entry.id) {
+              <div class="card">
+                <div class="card-header">
+                  <strong>{{ entry.consumer_id }}</strong>
+                  <button class="button" type="button" (click)="replay(entry.id)">Replay</button>
+                </div>
+                <div class="tag-row">
+                  <span class="tag mono">{{ entry.event_id }}</span>
+                  <span class="tag">{{ entry.attempt_count }} attempts</span>
+                  <span class="tag risky">{{ entry.failure_reason }}</span>
+                </div>
+                <p class="mono">{{ entry.target_url }}</p>
               </div>
-              <div class="tag-row">
-                <span class="tag mono">{{ entry.event_id }}</span>
-                <span class="tag">{{ entry.attempt_count }} attempts</span>
-                <span class="tag risky">{{ entry.failure_reason }}</span>
-              </div>
-              <p class="mono">{{ entry.target_url }}</p>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No DLQ entries.</strong>
+            <p>Failed deliveries will appear here after retries are exhausted.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
 
@@ -45,24 +57,33 @@
       </div>
 
       @if (attempts$ | async; as attempts) {
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Consumer</th>
-              <th>Status</th>
-              <th>Attempt</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (attempt of attempts; track attempt.id) {
+        @if (attempts.length) {
+          <table class="table">
+            <thead>
               <tr>
-                <td>{{ attempt.consumer_id }}</td>
-                <td><span class="tag" [class.safe]="attempt.success" [class.breaking]="!attempt.success">{{ attempt.success ? 'success' : 'failed' }}</span></td>
-                <td>{{ attempt.attempt_count }}</td>
+                <th>Consumer</th>
+                <th>Status</th>
+                <th>Attempt</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (attempt of attempts; track attempt.id) {
+                <tr>
+                  <td>{{ attempt.consumer_id }}</td>
+                  <td><span class="tag" [class.safe]="attempt.success" [class.breaking]="!attempt.success">{{ attempt.success ? 'success' : 'failed' }}</span></td>
+                  <td>{{ attempt.attempt_count }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="empty-state">
+            <strong>No delivery history yet.</strong>
+            <p>Webhook attempts will appear here after the runtime starts sending events.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
   </section>

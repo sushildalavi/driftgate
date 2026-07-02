@@ -1,0 +1,257 @@
+<div class="landing">
+  <section class="hero card">
+    <div class="hero-copy">
+      <p class="eyebrow">DriftGate</p>
+      <h1>Catch breaking API changes before consumers do.</h1>
+      <p class="lede">
+        DriftGate combines contract governance, webhook reliability, schema drift evidence, payload history, and guided review
+        into one local-first platform. Run it in Docker, wire it to Azure Service Bus or Cosmos-compatible storage when you need
+        them, and keep the whole workflow explainable.
+      </p>
+
+      <div class="cta-row">
+        <a class="button" routerLink="/app/overview">Open demo</a>
+        <a class="button secondary" routerLink="/app/review">View contract review</a>
+        <a class="button secondary" href="https://github.com/sushildalavi/driftgate" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </div>
+
+      <div class="hero-chips">
+        <span>Angular</span>
+        <span>FastAPI</span>
+        <span>PostgreSQL</span>
+        <span>MongoDB / Cosmos-compatible</span>
+        <span>Azure Service Bus-ready</span>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="panel-header">
+        <div>
+          <p class="panel-label">Live platform snapshot</p>
+          <h2>Operational control center</h2>
+        </div>
+        <span class="tag">Local-first</span>
+      </div>
+
+      @if (loading()) {
+        <div class="skeleton-grid">
+          <div class="skeleton card"></div>
+          <div class="skeleton card"></div>
+          <div class="skeleton card"></div>
+        </div>
+      } @else {
+        @if (errorMessage()) {
+          <div class="banner error">{{ errorMessage() }}</div>
+        }
+
+        @if (overview(); as overview) {
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span>Endpoints</span>
+              <strong>{{ overview.metrics.endpoint_count }}</strong>
+              <p>Registered contracts under governance.</p>
+            </article>
+            <article class="metric-card">
+              <span>Snapshots</span>
+              <strong>{{ overview.metrics.snapshot_count }}</strong>
+              <p>Runtime and monitor observations stored locally.</p>
+            </article>
+            <article class="metric-card">
+              <span>Contract reviews</span>
+              <strong>{{ overview.metrics.contract_review_count ?? 0 }}</strong>
+              <p>Evidence-backed review records in the document store.</p>
+            </article>
+          </div>
+
+          <div class="live-list">
+            <div class="live-row">
+              <span class="tag">Latest severity mix</span>
+              <div class="tag-row">
+                @for (entry of overview.metrics.severity_counts | keyvalue; track entry.key) {
+                  <span class="tag" [class.breaking]="entry.key === 'BREAKING'" [class.risky]="entry.key === 'RISKY'">
+                    {{ entry.key }} {{ entry.value }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="live-row">
+              <span class="tag">Active endpoints</span>
+              <div class="stack compact">
+                @for (endpoint of overview.endpoints.slice(0, 3); track endpoint.id) {
+                  <div class="preview-line">
+                    <a [routerLink]="['/app/registry', endpoint.id]">{{ endpoint.name }}</a>
+                    <span>{{ endpoint.method }}</span>
+                    <span>{{ endpoint.provider }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  <section class="section card">
+    <div class="section-heading">
+      <div>
+        <p class="panel-label">Problem space</p>
+        <h2>Why DriftGate exists</h2>
+      </div>
+      <p class="section-copy">
+        Teams need to see drift, retries, payloads, and review evidence together. If the data lives in separate tools, important
+        changes get approved without context.
+      </p>
+    </div>
+
+    <div class="grid cards-4">
+      @for (card of problemCards; track card.title) {
+        <article class="mini-card">
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="section card">
+    <div class="section-heading">
+      <div>
+        <p class="panel-label">Workflow</p>
+        <h2>One flow from gateway to review</h2>
+      </div>
+      <p class="section-copy">
+        A clear operational path keeps contract changes reviewable, replayable, and easy to explain during incidents.
+      </p>
+    </div>
+
+    <div class="workflow">
+      @for (step of workflow; track step.title; let last = $last) {
+        <div class="workflow-step">
+          <span class="step-index">{{ $index + 1 }}</span>
+          <div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.detail }}</p>
+          </div>
+          @if (!last) {
+            <span class="step-connector"></span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="section card">
+    <div class="section-heading">
+      <div>
+        <p class="panel-label">Features</p>
+        <h2>Enterprise controls without the enterprise bloat</h2>
+      </div>
+      <p class="section-copy">Everything is designed to explain why a change is risky, breaking, or safe.</p>
+    </div>
+
+    <div class="grid cards-4">
+      @for (card of featureCards; track card) {
+        <div class="feature-chip">{{ card }}</div>
+      }
+    </div>
+  </section>
+
+  <section class="section grid two-up">
+    <article class="card">
+      <div class="section-heading">
+        <div>
+          <p class="panel-label">Demo preview</p>
+          <h2>Seeded examples from the governance flow</h2>
+        </div>
+        <span class="tag">Illustrative only</span>
+      </div>
+
+      <div class="demo-list">
+        @for (card of demoCards; track card.title; let index = $index) {
+          <button class="demo-card" type="button" [class.active]="activeDemo() === index" (click)="selectDemo(index)">
+            <span class="tag">{{ card.label }}</span>
+            <strong>{{ card.title }}</strong>
+            <span class="tag" [class.breaking]="card.severity === 'breaking'" [class.risky]="card.severity === 'risky'">
+              {{ card.severity }}
+            </span>
+          </button>
+        }
+      </div>
+    </article>
+
+    <article class="card demo-detail">
+      <div class="section-heading">
+        <div>
+          <p class="panel-label">Selected demo</p>
+          <h2>{{ currentDemo().title }}</h2>
+        </div>
+        <a class="tag" routerLink="/app/review">Open review</a>
+      </div>
+      <p class="demo-copy">{{ currentDemo().copy }}</p>
+      <div class="demo-footer">
+        <span class="tag">{{ currentDemo().label }}</span>
+        <span class="tag">{{ currentDemo().severity }}</span>
+      </div>
+    </article>
+  </section>
+
+  <section class="section card">
+    <div class="section-heading">
+      <div>
+        <p class="panel-label">Reliability</p>
+        <h2>Validated locally, not claimed as production load</h2>
+      </div>
+      <p class="section-copy">
+        These are workspace facts from the latest verification run, not a sustained production benchmark.
+      </p>
+    </div>
+
+    <div class="grid cards-4">
+      @for (fact of verificationFacts; track fact.title) {
+        <article class="mini-card">
+          <h3>{{ fact.title }}</h3>
+          <strong class="fact-value">{{ fact.value }}</strong>
+          <p>{{ fact.detail }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="section card">
+    <div class="section-heading">
+      <div>
+        <p class="panel-label">Architecture</p>
+        <h2>Simple, legible system boundaries</h2>
+      </div>
+      <p class="section-copy">The UI mirrors the actual system layout instead of hiding implementation behind marketing fluff.</p>
+    </div>
+
+    <div class="architecture-grid">
+      @for (node of architectureNodes; track node.title) {
+        <article class="architecture-card">
+          <h3>{{ node.title }}</h3>
+          <p>{{ node.detail }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <footer class="footer card">
+    <div>
+      <p class="panel-label">DriftGate</p>
+      <p>GitHub, docs, and local deployment notes for contract governance and webhook reliability.</p>
+    </div>
+    <div class="footer-links">
+      <a routerLink="/app/overview">App</a>
+      <a href="https://github.com/sushildalavi/driftgate" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://github.com/sushildalavi/driftgate/blob/main/README.md" target="_blank" rel="noreferrer">README</a>
+      <a href="https://github.com/sushildalavi/driftgate/blob/main/docs/LOCAL_DEVELOPMENT.md" target="_blank" rel="noreferrer">
+        Local setup
+      </a>
+    </div>
+  </footer>
+</div>

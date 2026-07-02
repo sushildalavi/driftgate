@@ -1,0 +1,164 @@
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <p class="meta">Contract review workflow</p>
+        <h3>Evidence-grounded contract review</h3>
+      </div>
+      <div class="tag-row">
+        <a class="tag" routerLink="/app/overview">Open overview</a>
+        <a class="tag" routerLink="/app/registry">Back to registry</a>
+      </div>
+    </div>
+
+    <p class="section-copy">
+      Pick an endpoint, inspect the latest review history, and generate a new contract review from the runtime data. The
+      evaluation is grounded in schema diffs, payloads, validation failures, subscriptions, and DLQ context.
+    </p>
+
+    @if (actionMessage()) {
+      <div class="banner">{{ actionMessage() }}</div>
+    }
+  </section>
+
+  <section class="grid cols-2">
+    <article class="card">
+      <div class="card-header">
+        <div>
+          <h3>Review targets</h3>
+          <p>Select an endpoint to inspect its contract history.</p>
+        </div>
+        <span class="tag">{{ endpoints().length }} endpoints</span>
+      </div>
+
+      @if (loading()) {
+        <div class="stack">
+          <div class="skeleton card"></div>
+          <div class="skeleton card"></div>
+          <div class="skeleton card"></div>
+        </div>
+      } @else {
+        @if (errorMessage()) {
+          <div class="banner error">{{ errorMessage() }}</div>
+        }
+
+        @if (endpoints().length) {
+          <div class="stack">
+            @for (endpoint of endpoints(); track trackById($index, endpoint)) {
+              <button
+                class="review-target"
+                type="button"
+                [class.active]="selectedEndpointId() === endpoint.id"
+                (click)="selectEndpoint(endpoint.id)"
+              >
+                <div class="review-target__header">
+                  <strong>{{ endpoint.name }}</strong>
+                  <span class="tag">{{ endpoint.method }}</span>
+                </div>
+                <p>{{ endpoint.url }}</p>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No endpoints yet.</strong>
+            <p>Track webhook traffic first, then return here to generate a review.</p>
+          </div>
+        }
+      }
+    </article>
+
+    <article class="card">
+      <div class="card-header">
+        <div>
+          <h3>Selected review</h3>
+          <p>{{ selectedEndpoint()?.name ?? 'No endpoint selected' }}</p>
+        </div>
+        <button class="button" type="button" [disabled]="reviewLoading()" (click)="generateReview()">
+          {{ reviewLoading() ? 'Working…' : 'Generate review' }}
+        </button>
+      </div>
+
+      @if (selectedReview(); as reviewRecord) {
+        <div class="stack">
+          <div class="card">
+            <div class="tag-row">
+              <span class="tag" [class.safe]="reviewRecord.review.decision === 'approve'">
+                {{ reviewRecord.review.decision }}
+              </span>
+              <span class="tag" [class.breaking]="reviewRecord.review.severity === 'breaking'" [class.risky]="reviewRecord.review.severity === 'risky'">
+                {{ reviewRecord.review.severity }}
+              </span>
+              <span class="tag">confidence {{ reviewRecord.review.confidence }}</span>
+            </div>
+            <p>{{ reviewRecord.review.summary }}</p>
+            <p class="meta">{{ reviewRecord.review.consumer_impact }}</p>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h4>Evidence</h4>
+              <div class="stack">
+                @for (item of reviewRecord.review.evidence; track item) {
+                  <span class="tag mono">{{ item }}</span>
+                }
+              </div>
+            </div>
+            <div class="card">
+              <h4>Recommended fixes</h4>
+              <div class="stack">
+                @for (item of reviewRecord.review.recommended_fixes; track item) {
+                  <div class="tag">{{ item }}</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4>Review comment</h4>
+              <span class="tag mono">{{ reviewRecord.review_id }}</span>
+            </div>
+            <pre class="mono">{{ reviewRecord.review.review_comment }}</pre>
+          </div>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <strong>No contract review stored yet.</strong>
+          <p>Generate a review to see the grounded evidence, summary, and migration note.</p>
+        </div>
+      }
+    </article>
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h3>Review history</h3>
+        <p>Most recent contract review outcomes for the selected endpoint.</p>
+      </div>
+      <span class="tag">{{ reviews().length }}</span>
+    </div>
+
+    @if (reviews().length) {
+      <div class="grid cols-2">
+        @for (record of reviews(); track record.review_id) {
+          <article class="mini-card">
+            <div class="tag-row">
+              <span class="tag">{{ record.review.decision }}</span>
+              <span class="tag">{{ record.review.severity }}</span>
+              <span class="tag mono">{{ record.created_at }}</span>
+            </div>
+            <h4>{{ record.review.summary }}</h4>
+            <p>{{ record.evidence_summary }}</p>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <strong>No review history yet.</strong>
+        <p>The selected endpoint has not been reviewed in this workspace.</p>
+      </div>
+    }
+  </section>
+</div>

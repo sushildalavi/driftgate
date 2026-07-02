@@ -9,17 +9,26 @@
         <span class="tag">Mongo / Cosmos</span>
       </div>
       @if (payloads$ | async; as payloads) {
-        <div class="stack">
-          @for (payload of payloads; track payload.document_id) {
-            <div class="codebox">
-              <div class="tag-row">
-                <span class="tag mono">{{ payload.document_id.slice(0, 10) }}…</span>
-                <span class="tag">{{ payload.source }}</span>
+        @if (payloads.length) {
+          <div class="stack">
+            @for (payload of payloads; track payload.document_id) {
+              <div class="codebox">
+                <div class="tag-row">
+                  <span class="tag mono">{{ payload.document_id.slice(0, 10) }}…</span>
+                  <span class="tag">{{ payload.source }}</span>
+                </div>
+                <pre class="mono">{{ payload.payload | json }}</pre>
               </div>
-              <pre class="mono">{{ payload.payload | json }}</pre>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No payload snapshots yet.</strong>
+            <p>Track runtime traffic to store evidence cards here.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
 
@@ -32,17 +41,26 @@
         <span class="tag">Drilldown</span>
       </div>
       @if (validations$ | async; as validations) {
-        <div class="stack">
-          @for (entry of validations; track entry.document_id) {
-            <div class="card">
-              <div class="tag-row">
-                <span class="tag">{{ entry.path }}</span>
-                <span class="tag">{{ entry.source }}</span>
+        @if (validations.length) {
+          <div class="stack">
+            @for (entry of validations; track entry.document_id) {
+              <div class="card">
+                <div class="tag-row">
+                  <span class="tag">{{ entry.path }}</span>
+                  <span class="tag">{{ entry.source }}</span>
+                </div>
+                <pre class="mono">{{ entry.errors | json }}</pre>
               </div>
-              <pre class="mono">{{ entry.errors | json }}</pre>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No validation errors.</strong>
+            <p>Malformed requests will show up here once validation fails.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
   </section>
@@ -57,17 +75,26 @@
         <span class="tag">Diffs</span>
       </div>
       @if (diffs$ | async; as diffs) {
-        <div class="stack">
-          @for (entry of diffs; track entry.document_id) {
-            <div class="card">
-              <div class="tag-row">
-                <span class="tag">{{ entry.classification }}</span>
-                <span class="tag mono">{{ entry.endpoint_name }}</span>
+        @if (diffs.length) {
+          <div class="stack">
+            @for (entry of diffs; track entry.document_id) {
+              <div class="card">
+                <div class="tag-row">
+                  <span class="tag">{{ entry.classification }}</span>
+                  <span class="tag mono">{{ entry.endpoint_name }}</span>
+                </div>
+                <pre class="mono">{{ entry.diffs | json }}</pre>
               </div>
-              <pre class="mono">{{ entry.diffs | json }}</pre>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No diff documents yet.</strong>
+            <p>Schema changes are mirrored here for replay and review workflows.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
 
@@ -80,17 +107,26 @@
         <span class="tag">Artifacts</span>
       </div>
       @if (replayArtifacts$ | async; as artifacts) {
-        <div class="stack">
-          @for (entry of artifacts; track entry.document_id) {
-            <div class="card">
-              <div class="tag-row">
-                <span class="tag">{{ entry.artifact_type }}</span>
-                <span class="tag">{{ entry.source }}</span>
+        @if (artifacts.length) {
+          <div class="stack">
+            @for (entry of artifacts; track entry.document_id) {
+              <div class="card">
+                <div class="tag-row">
+                  <span class="tag">{{ entry.artifact_type }}</span>
+                  <span class="tag">{{ entry.source }}</span>
+                </div>
+                <pre class="mono">{{ entry.payload | json }}</pre>
               </div>
-              <pre class="mono">{{ entry.payload | json }}</pre>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No replay artifacts yet.</strong>
+            <p>DLQ recovery will append artifacts here.</p>
+          </div>
+        }
+      } @else {
+        <div class="skeleton card"></div>
       }
     </article>
   </section>

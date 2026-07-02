@@ -1,11 +1,12 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../api.service';
 
 @Component({
   standalone: true,
-  imports: [AsyncPipe],
+  imports: [AsyncPipe, RouterLink],
   templateUrl: './reliability.page.html',
   styleUrl: './shared.css',
 })

@@ -6,32 +6,42 @@
           <h3>Schema registry</h3>
           <p>Route-level contract registry and service ownership.</p>
         </div>
-        <span class="tag">{{ registry.endpoints.length }} endpoints</span>
+        <div class="tag-row">
+          <a class="tag" routerLink="/app/overview">Overview</a>
+          <span class="tag">{{ registry.endpoints.length }} endpoints</span>
+        </div>
       </div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Endpoint</th>
-            <th>Method</th>
-            <th>Provider</th>
-            <th>Latest snapshot</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (endpoint of registry.endpoints; track trackById($index, endpoint)) {
+      @if (registry.endpoints.length) {
+        <table class="table">
+          <thead>
             <tr>
-              <td>
-                <a class="mono" [routerLink]="['/registry', endpoint.id]">{{ endpoint.name }}</a>
-                <div class="meta">{{ endpoint.url }}</div>
-              </td>
-              <td>{{ endpoint.method }}</td>
-              <td>{{ endpoint.provider }}</td>
-              <td class="mono">{{ endpoint.latest_snapshot_hash ?? 'pending' }}</td>
+              <th>Endpoint</th>
+              <th>Method</th>
+              <th>Provider</th>
+              <th>Latest snapshot</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (endpoint of registry.endpoints; track trackById($index, endpoint)) {
+              <tr>
+                <td>
+                  <a class="mono" [routerLink]="['/app/registry', endpoint.id]">{{ endpoint.name }}</a>
+                  <div class="meta">{{ endpoint.url }}</div>
+                </td>
+                <td>{{ endpoint.method }}</td>
+                <td>{{ endpoint.provider }}</td>
+                <td class="mono">{{ endpoint.latest_snapshot_hash ?? 'pending' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty-state">
+          <strong>No endpoints registered yet.</strong>
+          <p>Send traffic to `/track` to populate the registry and version history.</p>
+        </div>
+      }
     </section>
 
     <section class="card">
@@ -43,21 +53,35 @@
         <span class="tag">{{ registry.subscriptions.length }} subscriptions</span>
       </div>
 
-      <div class="grid cols-2">
-        @for (sub of registry.subscriptions; track trackById($index, sub)) {
-          <div class="card">
-            <div class="card-header">
-              <h4>{{ sub.consumer_id }}</h4>
-              <span class="tag" [class.safe]="sub.active">{{ sub.active ? 'active' : 'inactive' }}</span>
+      @if (registry.subscriptions.length) {
+        <div class="grid cols-2">
+          @for (sub of registry.subscriptions; track trackById($index, sub)) {
+            <div class="card">
+              <div class="card-header">
+                <h4>{{ sub.consumer_id }}</h4>
+                <span class="tag" [class.safe]="sub.active">{{ sub.active ? 'active' : 'inactive' }}</span>
+              </div>
+              <p class="mono">{{ sub.target_url }}</p>
+              <div class="tag-row">
+                <span class="tag">{{ sub.severity_threshold }}</span>
+                <span class="tag">schema v{{ sub.schema_version ?? 'any' }}</span>
+              </div>
             </div>
-            <p class="mono">{{ sub.target_url }}</p>
-            <div class="tag-row">
-              <span class="tag">{{ sub.severity_threshold }}</span>
-              <span class="tag">schema v{{ sub.schema_version ?? 'any' }}</span>
-            </div>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <strong>No service ownership yet.</strong>
+          <p>Subscriptions will appear here once consumers are registered.</p>
+        </div>
+      }
+    </section>
+  </div>
+} @else {
+  <div class="page">
+    <section class="card">
+      <div class="skeleton card"></div>
+      <div class="skeleton card"></div>
     </section>
   </div>
 }

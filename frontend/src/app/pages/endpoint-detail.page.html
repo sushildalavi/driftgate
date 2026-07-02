@@ -6,7 +6,7 @@
           <h3>{{ vm.detail.endpoint.name }}</h3>
           <p>Schema versions, snapshots, drift history, and contract review.</p>
         </div>
-        <a class="tag" routerLink="/registry">Back to registry</a>
+        <a class="tag" routerLink="/app/registry">Back to registry</a>
       </div>
 
       <div class="tag-row">
@@ -23,18 +23,25 @@
           <h4>Snapshots</h4>
           <span class="tag">{{ vm.detail.snapshots.length }}</span>
         </div>
-        <div class="stack">
-          @for (snapshot of vm.detail.snapshots; track trackById($index, snapshot)) {
-            <div class="codebox">
-              <div class="tag-row">
-                <span class="tag mono">{{ snapshot.schema_hash.slice(0, 12) }}…</span>
-                <span class="tag">{{ snapshot.status_code }}</span>
-                <span class="tag">{{ snapshot.response_time_ms }} ms</span>
+        @if (vm.detail.snapshots.length) {
+          <div class="stack">
+            @for (snapshot of vm.detail.snapshots; track trackById($index, snapshot)) {
+              <div class="codebox">
+                <div class="tag-row">
+                  <span class="tag mono">{{ snapshot.schema_hash.slice(0, 12) }}…</span>
+                  <span class="tag">{{ snapshot.status_code }}</span>
+                  <span class="tag">{{ snapshot.response_time_ms }} ms</span>
+                </div>
+                <pre class="mono">{{ snapshot.normalized_schema_json | json }}</pre>
               </div>
-              <pre class="mono">{{ snapshot.normalized_schema_json | json }}</pre>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No snapshots yet.</strong>
+            <p>Capture runtime traffic to compare versions and inspect schema evolution.</p>
+          </div>
+        }
       </article>
 
       <article class="card">
@@ -42,18 +49,25 @@
           <h4>Breaking-change review</h4>
           <span class="tag">{{ vm.detail.diffs.length }}</span>
         </div>
-        <div class="stack">
-          @for (diff of vm.detail.diffs; track trackById($index, diff)) {
-            <div class="card">
-              <div class="tag-row">
-                <span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span>
-                <span class="tag mono">{{ diff.change_type }}</span>
-                <span class="tag mono">{{ diff.path }}</span>
+        @if (vm.detail.diffs.length) {
+          <div class="stack">
+            @for (diff of vm.detail.diffs; track trackById($index, diff)) {
+              <div class="card">
+                <div class="tag-row">
+                  <span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span>
+                  <span class="tag mono">{{ diff.change_type }}</span>
+                  <span class="tag mono">{{ diff.path }}</span>
+                </div>
+                <p>{{ diff.message }}</p>
               </div>
-              <p>{{ diff.message }}</p>
-            </div>
-          }
-        </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <strong>No diffs recorded.</strong>
+            <p>The latest tracked payload still matches the current baseline.</p>
+          </div>
+        }
       </article>
     </section>
 
@@ -62,11 +76,18 @@
         <h4>Service ownership</h4>
         <span class="tag">{{ vm.detail.subscriptions.length }}</span>
       </div>
-      <div class="tag-row">
-        @for (sub of vm.detail.subscriptions; track trackById($index, sub)) {
-          <span class="tag">{{ sub.consumer_id }} · {{ sub.severity_threshold }}</span>
-        }
-      </div>
+      @if (vm.detail.subscriptions.length) {
+        <div class="tag-row">
+          @for (sub of vm.detail.subscriptions; track trackById($index, sub)) {
+            <span class="tag">{{ sub.consumer_id }} · {{ sub.severity_threshold }}</span>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <strong>No subscriptions yet.</strong>
+          <p>Register a consumer to see service ownership and thresholds here.</p>
+        </div>
+      }
     </section>
 
     <section class="card">
@@ -99,9 +120,9 @@
                   {{ currentReview.review.severity }}
                 </span>
                 <span class="tag">confidence {{ currentReview.review.confidence | number:'1.2-2' }}</span>
-                @if (currentReview.review.insufficient_evidence) {
-                  <span class="tag risky">insufficient evidence</span>
-                }
+            @if (currentReview.review.insufficient_evidence) {
+              <span class="tag risky">insufficient evidence</span>
+            }
               </div>
               <span class="tag mono">{{ currentReview.provider }}</span>
             </div>
@@ -161,9 +182,19 @@
             }
           </div>
         </div>
-      } @else {
-        <p class="meta">No contract review stored yet. Generate one to inspect the evidence-grounded output.</p>
+} @else {
+        <div class="empty-state">
+          <strong>No contract review stored yet.</strong>
+          <p>Generate a review to inspect the evidence-grounded output.</p>
+        </div>
       }
+    </section>
+  </div>
+} @else {
+  <div class="page">
+    <section class="card">
+      <div class="skeleton card"></div>
+      <div class="skeleton card"></div>
     </section>
   </div>
 }
