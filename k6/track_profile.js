@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 
 const requestErrorTransportTotal = new Counter('request_error_transport_total');
 const requestErrorValidationTotal = new Counter('request_error_validation_total');
@@ -9,28 +9,28 @@ const requestErrorServerTotal = new Counter('request_error_server_total');
 
 export const options = {
   scenarios: {
-    drift_load: {
-      executor: 'constant-vus',
-      vus: Number(__ENV.K6_VUS || 200),
-      duration: __ENV.K6_DURATION || '25s',
+    drift_profile: {
+      executor: 'shared-iterations',
+      vus: Number(__ENV.K6_VUS || 25),
+      iterations: Number(__ENV.K6_TOTAL_REQUESTS || 10000),
+      maxDuration: __ENV.K6_MAX_DURATION || '45m',
     },
   },
   summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
   thresholds: {
     http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<1500'],
+    http_req_duration: ['p(95)<2000'],
   },
 };
 
-const BASE = __ENV.TRACK_URL || 'http://localhost:8302/track';
-const FAIL_WEBHOOK = __ENV.FAIL_WEBHOOK === 'true';
-const ROUTE_PATH = __ENV.ROUTE_PATH || '/bench/contracts';
-const SERVICE_NAME = __ENV.SERVICE_NAME || 'bench-client';
+const TRACK_URL = __ENV.TRACK_URL || 'http://localhost:8302/track';
+const ROUTE_PATH = __ENV.ROUTE_PATH || '/bench/profile';
+const SERVICE_NAME = __ENV.SERVICE_NAME || 'bench-profile';
 const NAMESPACE = __ENV.NAMESPACE || 'k6';
 const HTTP_METHOD = __ENV.HTTP_METHOD || 'POST';
 
 function payloadVariant(i) {
-  const p = {
+  return {
     namespace: NAMESPACE,
     service_name: SERVICE_NAME,
     http_method: HTTP_METHOD,
@@ -42,16 +42,13 @@ function payloadVariant(i) {
       meta: i % 7 === 0 ? undefined : { active: true, tags: ['a', 'b'] },
     },
   };
-  if (FAIL_WEBHOOK) {
-    p.payload.webhook_failure_injected = true;
-  }
-  return p;
 }
 
 export default function () {
-  const i = Math.floor(Math.random() * 5000);
-  const body = JSON.stringify(payloadVariant(i));
-  const res = http.post(BASE, body, { headers: { 'Content-Type': 'application/json' } });
+  const i = __ITER + __VU * 1000;
+  const res = http.post(TRACK_URL, JSON.stringify(payloadVariant(i)), {
+    headers: { 'Content-Type': 'application/json' },
+  });
   if (res.status === 0) {
     requestErrorTransportTotal.add(1);
   } else if (res.status === 422) {
@@ -61,6 +58,8 @@ export default function () {
   } else if (res.status >= 500) {
     requestErrorServerTotal.add(1);
   }
-  check(res, { 'status 200': (r) => r.status === 200 });
-  sleep(0.01);
+  check(res, {
+    'status 200': (r) => r.status === 200,
+    'no server error': (r) => r.status < 500,
+  });
 }

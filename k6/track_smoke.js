@@ -7,7 +7,7 @@ export const options = {
   iterations: 100,
 };
 
-const URL = __ENV.TRACK_URL || 'http://localhost:8018/track';
+const URL = __ENV.TRACK_URL || 'http://localhost:8302/track';
 
 export default function () {
   const payload = {
