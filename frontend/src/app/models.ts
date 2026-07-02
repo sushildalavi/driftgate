@@ -6,6 +6,8 @@ export interface MonitorMetrics {
   queue_lag?: number;
   dlq_count?: number;
   retry_count?: number;
+  contract_review_count?: number;
+  contract_review_insufficient_evidence_count?: number;
 }
 
 export interface EndpointRecord {
@@ -112,4 +114,57 @@ export interface ReplayResult {
   replayed: boolean;
   failure_reason?: string | null;
   replayed_at: string;
+}
+
+export interface ContractReviewEvidenceItem {
+  citation: string;
+  kind: string;
+  summary: string;
+  details: Record<string, unknown>;
+}
+
+export interface ContractReviewOutcome {
+  decision: 'approve' | 'needs_changes' | 'block';
+  severity: 'compatible' | 'risky' | 'breaking';
+  summary: string;
+  consumer_impact: string;
+  evidence: string[];
+  recommended_fixes: string[];
+  migration_note: string;
+  review_comment: string;
+  confidence: number;
+  insufficient_evidence: boolean;
+}
+
+export interface ContractReviewContext {
+  endpoint_id: string;
+  endpoint_name: string;
+  namespace: string;
+  service_name: string;
+  http_method: string;
+  route_path: string;
+  current_version?: number | null;
+  schema_diffs: ContractReviewEvidenceItem[];
+  payload_snapshots: ContractReviewEvidenceItem[];
+  validation_failures: ContractReviewEvidenceItem[];
+  dlq_entries: ContractReviewEvidenceItem[];
+  delivery_attempts: ContractReviewEvidenceItem[];
+  subscriptions: Record<string, unknown>[];
+  drift_violations: ContractReviewEvidenceItem[];
+  notes: string[];
+  insufficient_evidence: boolean;
+}
+
+export interface ContractReviewRecord {
+  review_id: string;
+  endpoint_id: string;
+  endpoint_name: string;
+  provider: string;
+  model_name?: string | null;
+  created_at: string;
+  latency_seconds: number;
+  evidence_summary: string;
+  consumer_impact: string;
+  context: ContractReviewContext;
+  review: ContractReviewOutcome;
 }

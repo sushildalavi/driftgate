@@ -13,6 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.db import get_db
 from app.main import app
+from app.runtime.contract_review import (
+    ContractReviewOutcome,
+    ContractReviewService,
+    FakeReviewProvider,
+    ReviewDecision,
+    ReviewSeverity,
+)
 from app.runtime.document_store import InMemoryDocumentStore
 from app.runtime import webhook as webhook_runtime
 
@@ -364,3 +371,48 @@ async def test_document_store_browse_endpoints(client: httpx.AsyncClient) -> Non
     assert validations.status_code == 200
     assert len(payloads.json()) == 2
     assert len(diffs.json()) == 1
+
+
+@pytest.mark.asyncio
+async def test_contract_review_api_and_history(client: httpx.AsyncClient) -> None:
+    review = ContractReviewOutcome(
+        decision=ReviewDecision.NEEDS_CHANGES,
+        severity=ReviewSeverity.RISKY,
+        summary="Schema change is risky",
+        consumer_impact="1 active consumer",
+        evidence=["[snapshot:1] safe baseline", "[schema-diff:1] nullable change"],
+        recommended_fixes=["Keep the field optional until consumers are updated."],
+        migration_note="Roll out a compatibility layer first.",
+        review_comment="### Review\nRisky change with grounded evidence.",
+        confidence=0.91,
+        insufficient_evidence=False,
+    )
+    app.state.contract_review_service = ContractReviewService(provider=FakeReviewProvider(outcome=review))
+
+    base = {
+        "service_name": "svc-a",
+        "http_method": "POST",
+        "route_path": "/v1/orders",
+        "payload": _payload(include_meta=True),
+    }
+    created = await client.post("/track", json=base)
+    endpoint_id = created.json()["endpoint_id"]
+    await client.post(
+        "/track",
+        json={
+            **base,
+            "payload": _payload(score=42.5, include_meta=False),
+        },
+    )
+
+    response = await client.post("/api/v1/ai/contract-review", json={"endpoint_id": endpoint_id})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["review"]["decision"] == "needs_changes"
+    assert body["review"]["severity"] == "risky"
+    assert body["review"]["confidence"] == pytest.approx(0.91)
+
+    history = await client.get("/api/v1/ai/contract-reviews", params={"endpoint_id": endpoint_id})
+    assert history.status_code == 200
+    assert len(history.json()) == 1
+    assert history.json()[0]["review"]["decision"] == "needs_changes"

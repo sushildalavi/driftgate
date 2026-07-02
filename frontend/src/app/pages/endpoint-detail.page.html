@@ -1,19 +1,19 @@
-@if (detail$ | async; as detail) {
+@if (vm$ | async; as vm) {
   <div class="page">
     <section class="card">
       <div class="card-header">
         <div>
-          <h3>{{ detail.endpoint.name }}</h3>
-          <p>Schema versions, snapshots, and drift history.</p>
+          <h3>{{ vm.detail.endpoint.name }}</h3>
+          <p>Schema versions, snapshots, drift history, and contract review.</p>
         </div>
         <a class="tag" routerLink="/registry">Back to registry</a>
       </div>
 
       <div class="tag-row">
-        <span class="tag">{{ detail.endpoint.method }}</span>
-        <span class="tag">{{ detail.endpoint.provider }}</span>
-        <span class="tag">{{ detail.endpoint.is_active ? 'active' : 'inactive' }}</span>
-        <span class="tag mono">{{ detail.endpoint.url }}</span>
+        <span class="tag">{{ vm.detail.endpoint.method }}</span>
+        <span class="tag">{{ vm.detail.endpoint.provider }}</span>
+        <span class="tag">{{ vm.detail.endpoint.is_active ? 'active' : 'inactive' }}</span>
+        <span class="tag mono">{{ vm.detail.endpoint.url }}</span>
       </div>
     </section>
 
@@ -21,10 +21,10 @@
       <article class="card">
         <div class="card-header">
           <h4>Snapshots</h4>
-          <span class="tag">{{ detail.snapshots.length }}</span>
+          <span class="tag">{{ vm.detail.snapshots.length }}</span>
         </div>
         <div class="stack">
-          @for (snapshot of detail.snapshots; track trackById($index, snapshot)) {
+          @for (snapshot of vm.detail.snapshots; track trackById($index, snapshot)) {
             <div class="codebox">
               <div class="tag-row">
                 <span class="tag mono">{{ snapshot.schema_hash.slice(0, 12) }}…</span>
@@ -40,10 +40,10 @@
       <article class="card">
         <div class="card-header">
           <h4>Breaking-change review</h4>
-          <span class="tag">{{ detail.diffs.length }}</span>
+          <span class="tag">{{ vm.detail.diffs.length }}</span>
         </div>
         <div class="stack">
-          @for (diff of detail.diffs; track trackById($index, diff)) {
+          @for (diff of vm.detail.diffs; track trackById($index, diff)) {
             <div class="card">
               <div class="tag-row">
                 <span class="tag" [class.breaking]="diff.severity === 'breaking'" [class.risky]="diff.severity === 'risky'">{{ diff.severity }}</span>
@@ -60,13 +60,110 @@
     <section class="card">
       <div class="card-header">
         <h4>Service ownership</h4>
-        <span class="tag">{{ detail.subscriptions.length }}</span>
+        <span class="tag">{{ vm.detail.subscriptions.length }}</span>
       </div>
       <div class="tag-row">
-        @for (sub of detail.subscriptions; track trackById($index, sub)) {
+        @for (sub of vm.detail.subscriptions; track trackById($index, sub)) {
           <span class="tag">{{ sub.consumer_id }} · {{ sub.severity_threshold }}</span>
         }
       </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h4>Contract Review</h4>
+          <p>LangGraph-driven, evidence-grounded review for this endpoint.</p>
+        </div>
+        <div class="tag-row">
+          <span class="tag">LangGraph</span>
+          <button class="button" type="button" [disabled]="reviewLoading()" (click)="generateReview(vm.detail.endpoint.id)">
+            {{ reviewLoading() ? 'Generating…' : 'Generate review' }}
+          </button>
+        </div>
+      </div>
+
+      @if (reviewMessage()) {
+        <p class="meta">{{ reviewMessage() }}</p>
+      }
+
+      @if (selectReview(vm.reviews); as currentReview) {
+        <div class="stack">
+          <div class="card">
+            <div class="card-header">
+              <div class="tag-row">
+                <span class="tag" [class.safe]="currentReview.review.decision === 'approve'">
+                  {{ currentReview.review.decision }}
+                </span>
+                <span class="tag" [class.breaking]="currentReview.review.severity === 'breaking'" [class.risky]="currentReview.review.severity === 'risky'">
+                  {{ currentReview.review.severity }}
+                </span>
+                <span class="tag">confidence {{ currentReview.review.confidence | number:'1.2-2' }}</span>
+                @if (currentReview.review.insufficient_evidence) {
+                  <span class="tag risky">insufficient evidence</span>
+                }
+              </div>
+              <span class="tag mono">{{ currentReview.provider }}</span>
+            </div>
+
+            <p>{{ currentReview.review.summary }}</p>
+            <p class="meta">{{ currentReview.review.consumer_impact }}</p>
+
+            <div class="grid cols-2">
+              <div>
+                <h5>Evidence</h5>
+                <div class="stack">
+                  @for (item of currentReview.review.evidence; track item) {
+                    <span class="tag mono">{{ item }}</span>
+                  }
+                </div>
+              </div>
+
+              <div>
+                <h5>Recommended fixes</h5>
+                <div class="stack">
+                  @for (item of currentReview.review.recommended_fixes; track item) {
+                    <div class="tag">{{ item }}</div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="stack">
+              <div class="card">
+                <div class="card-header">
+                  <h5>Migration note</h5>
+                  <button class="button" type="button" (click)="copyText(currentReview.review.migration_note)">Copy</button>
+                </div>
+                <p class="mono">{{ currentReview.review.migration_note }}</p>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h5>Review comment</h5>
+                  <button class="button" type="button" (click)="copyText(currentReview.review.review_comment)">Copy</button>
+                </div>
+                <pre class="mono">{{ currentReview.review.review_comment }}</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            @for (entry of vm.reviews.slice(0, 4); track entry.review_id) {
+              <div class="card">
+                <div class="tag-row">
+                  <span class="tag">{{ entry.review.decision }}</span>
+                  <span class="tag">{{ entry.review.severity }}</span>
+                  <span class="tag mono">{{ entry.created_at }}</span>
+                </div>
+                <p>{{ entry.review.summary }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <p class="meta">No contract review stored yet. Generate one to inspect the evidence-grounded output.</p>
+      }
     </section>
   </div>
 }

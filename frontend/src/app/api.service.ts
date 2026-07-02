@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable } from 'rxjs';
 
 import {
+  ContractReviewRecord,
   DeliveryAttempt,
   DiffRecord,
   DlqEntry,
@@ -41,6 +42,20 @@ export class ApiService {
 
   getMetrics(): Observable<MonitorMetrics> {
     return this.http.get<MonitorMetrics>(`${this.runtimeBaseUrl}/api/v1/metrics`);
+  }
+
+  reviewContract(endpointId: string, evidenceLimit = 5, reviewLimit = 10): Observable<ContractReviewRecord> {
+    return this.http.post<ContractReviewRecord>(`${this.runtimeBaseUrl}/api/v1/ai/contract-review`, {
+      endpoint_id: endpointId,
+      evidence_limit: evidenceLimit,
+      review_limit: reviewLimit,
+    });
+  }
+
+  getContractReviews(endpointId: string, limit = 10): Observable<ContractReviewRecord[]> {
+    return this.http.get<ContractReviewRecord[]>(`${this.runtimeBaseUrl}/api/v1/ai/contract-reviews`, {
+      params: { endpoint_id: endpointId, limit },
+    });
   }
 
   getEndpoints(): Observable<EndpointRecord[]> {

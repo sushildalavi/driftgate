@@ -145,10 +145,22 @@ async def track_contract(
     canonical_schema = canonicalize(payload)
     new_fingerprint = fingerprint(canonical_schema)
 
+    endpoint_id, endpoint_name, new_record, inserted = await upsert_schema_version(
+        db,
+        namespace=namespace,
+        service_name=service_name,
+        http_method=http_method,
+        route_path=route_path,
+        fingerprint=new_fingerprint,
+        canonical_schema=canonical_schema,
+        classification="SAFE",
+    )
+
     if document_store is not None:
         await _persist_document(
             "payload snapshot",
             document_store.store_payload_snapshot(
+                endpoint_id=endpoint_id,
                 namespace=namespace,
                 service_name=service_name,
                 http_method=http_method,
@@ -163,17 +175,6 @@ async def track_contract(
                 },
             ),
         )
-
-    endpoint_id, endpoint_name, new_record, inserted = await upsert_schema_version(
-        db,
-        namespace=namespace,
-        service_name=service_name,
-        http_method=http_method,
-        route_path=route_path,
-        fingerprint=new_fingerprint,
-        canonical_schema=canonical_schema,
-        classification="SAFE",
-    )
 
     diffs: list[dict[str, Any]] = []
     classification = "SAFE"

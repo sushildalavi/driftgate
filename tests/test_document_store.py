@@ -51,11 +51,23 @@ async def test_in_memory_document_store_round_trips_documents() -> None:
         artifact_type="revalidation",
         payload={"run_id": "r1"},
     )
+    review = await store.store_contract_review(
+        endpoint_id="endpoint-1",
+        endpoint_name="shop POST /webhooks/shop",
+        provider="fake",
+        model_name="fake",
+        evidence_summary="safe baseline",
+        consumer_impact="No active consumers",
+        review={"decision": "approve", "severity": "compatible"},
+        context={"endpoint_id": "endpoint-1"},
+        source="runtime-contract-review",
+    )
 
     assert snapshot["kind"] == "payload_snapshot"
     assert diff["classification"] == "BREAKING"
     assert validation_error["kind"] == "validation_error"
     assert replay["kind"] == "replay_artifact"
+    assert review["kind"] == "contract_review"
 
     fetched = await store.get_payload_snapshot(snapshot["document_id"])
     assert fetched is not None
@@ -63,6 +75,9 @@ async def test_in_memory_document_store_round_trips_documents() -> None:
 
     documents = await store.list_payload_snapshots()
     assert [doc["document_id"] for doc in documents] == [snapshot["document_id"]]
+    reviews = await store.list_contract_reviews()
+    assert len(reviews) == 1
+    assert reviews[0]["kind"] == "contract_review"
 
 
 @pytest.mark.asyncio

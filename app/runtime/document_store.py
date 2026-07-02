@@ -33,6 +33,7 @@ class DocumentStore(Protocol):
     async def store_payload_snapshot(
         self,
         *,
+        endpoint_id: str | None = None,
         namespace: str,
         service_name: str,
         http_method: str,
@@ -86,6 +87,21 @@ class DocumentStore(Protocol):
     ) -> dict[str, Any]:
         ...
 
+    async def store_contract_review(
+        self,
+        *,
+        endpoint_id: str,
+        endpoint_name: str,
+        provider: str,
+        model_name: str | None,
+        evidence_summary: str,
+        consumer_impact: str,
+        review: dict[str, Any],
+        context: dict[str, Any],
+        source: str,
+    ) -> dict[str, Any]:
+        ...
+
     async def get_payload_snapshot(self, document_id: str) -> dict[str, Any] | None:
         ...
 
@@ -101,6 +117,11 @@ class DocumentStore(Protocol):
     async def list_replay_artifacts(self, limit: int = 50) -> list[dict[str, Any]]:
         ...
 
+    async def list_contract_reviews(
+        self, limit: int = 50, endpoint_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        ...
+
     async def aclose(self) -> None:
         ...
 
@@ -112,6 +133,7 @@ class InMemoryDocumentStore:
             "schema_diffs": {},
             "validation_errors": {},
             "replay_artifacts": {},
+            "contract_reviews": {},
         }
 
     def _insert(self, collection: str, document: dict[str, Any]) -> dict[str, Any]:
@@ -126,6 +148,7 @@ class InMemoryDocumentStore:
     async def store_payload_snapshot(
         self,
         *,
+        endpoint_id: str | None = None,
         namespace: str,
         service_name: str,
         http_method: str,
@@ -142,6 +165,7 @@ class InMemoryDocumentStore:
             _document(
                 "payload_snapshot",
                 namespace=namespace,
+                endpoint_id=endpoint_id,
                 service_name=service_name,
                 http_method=http_method,
                 route_path=route_path,
@@ -231,6 +255,35 @@ class InMemoryDocumentStore:
             ),
         )
 
+    async def store_contract_review(
+        self,
+        *,
+        endpoint_id: str,
+        endpoint_name: str,
+        provider: str,
+        model_name: str | None,
+        evidence_summary: str,
+        consumer_impact: str,
+        review: dict[str, Any],
+        context: dict[str, Any],
+        source: str,
+    ) -> dict[str, Any]:
+        return self._insert(
+            "contract_reviews",
+            _document(
+                "contract_review",
+                endpoint_id=endpoint_id,
+                endpoint_name=endpoint_name,
+                provider=provider,
+                model_name=model_name,
+                evidence_summary=evidence_summary,
+                consumer_impact=consumer_impact,
+                review=review,
+                context=context,
+                source=source,
+            ),
+        )
+
     async def get_payload_snapshot(self, document_id: str) -> dict[str, Any] | None:
         document = self._collections["payload_snapshots"].get(document_id)
         return copy.deepcopy(document) if document is not None else None
@@ -246,6 +299,15 @@ class InMemoryDocumentStore:
 
     async def list_replay_artifacts(self, limit: int = 50) -> list[dict[str, Any]]:
         return self._list("replay_artifacts", limit)
+
+    async def list_contract_reviews(
+        self, limit: int = 50, endpoint_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        docs = self._list("contract_reviews", limit * 4 if endpoint_id else limit)
+        if endpoint_id is None:
+            return docs[:limit]
+        filtered = [doc for doc in docs if str(doc.get("endpoint_id")) == endpoint_id]
+        return filtered[:limit]
 
     async def aclose(self) -> None:
         return None
@@ -282,6 +344,7 @@ class MongoDocumentStore:
     async def store_payload_snapshot(
         self,
         *,
+        endpoint_id: str | None = None,
         namespace: str,
         service_name: str,
         http_method: str,
@@ -298,6 +361,7 @@ class MongoDocumentStore:
             _document(
                 "payload_snapshot",
                 namespace=namespace,
+                endpoint_id=endpoint_id,
                 service_name=service_name,
                 http_method=http_method,
                 route_path=route_path,
@@ -387,6 +451,35 @@ class MongoDocumentStore:
             ),
         )
 
+    async def store_contract_review(
+        self,
+        *,
+        endpoint_id: str,
+        endpoint_name: str,
+        provider: str,
+        model_name: str | None,
+        evidence_summary: str,
+        consumer_impact: str,
+        review: dict[str, Any],
+        context: dict[str, Any],
+        source: str,
+    ) -> dict[str, Any]:
+        return await self._insert(
+            "contract_reviews",
+            _document(
+                "contract_review",
+                endpoint_id=endpoint_id,
+                endpoint_name=endpoint_name,
+                provider=provider,
+                model_name=model_name,
+                evidence_summary=evidence_summary,
+                consumer_impact=consumer_impact,
+                review=review,
+                context=context,
+                source=source,
+            ),
+        )
+
     async def get_payload_snapshot(self, document_id: str) -> dict[str, Any] | None:
         return await self._find("payload_snapshots", document_id)
 
@@ -401,6 +494,15 @@ class MongoDocumentStore:
 
     async def list_replay_artifacts(self, limit: int = 50) -> list[dict[str, Any]]:
         return await self._list("replay_artifacts", limit)
+
+    async def list_contract_reviews(
+        self, limit: int = 50, endpoint_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        if endpoint_id is None:
+            return await self._list("contract_reviews", limit)
+        documents = await self._list("contract_reviews", max(limit * 4, limit))
+        filtered = [doc for doc in documents if str(doc.get("endpoint_id")) == endpoint_id]
+        return filtered[:limit]
 
     async def aclose(self) -> None:
         close = getattr(self._client, "close", None)

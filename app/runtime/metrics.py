@@ -30,6 +30,30 @@ WEBHOOK_DELIVERY_FAILURES_TOTAL = Counter(
 KAFKA_PUBLISH_FAILURES_TOTAL = Counter(
     "kafka_publish_failures_total", "Kafka publish failures"
 )
+CONTRACT_REVIEW_LATENCY_SECONDS = Histogram(
+    "contract_review_latency_seconds",
+    "Latency for the contract review workflow",
+)
+CONTRACT_REVIEW_TOTAL = Counter(
+    "contract_review_total",
+    "Contract review outcomes",
+    ["decision", "severity", "provider"],
+)
+CONTRACT_REVIEW_INSUFFICIENT_EVIDENCE_TOTAL = Counter(
+    "contract_review_insufficient_evidence_total",
+    "Contract reviews that returned insufficient evidence",
+    ["provider"],
+)
+CONTRACT_REVIEW_SCHEMA_VALID_TOTAL = Counter(
+    "contract_review_schema_valid_total",
+    "Contract review outputs that passed schema validation",
+    ["provider"],
+)
+CONTRACT_REVIEW_GROUNDING_FAILURE_TOTAL = Counter(
+    "contract_review_grounding_failure_total",
+    "Contract review outputs rejected for evidence grounding failures",
+    ["provider"],
+)
 
 
 def metrics_payload() -> tuple[bytes, str]:

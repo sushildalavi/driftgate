@@ -16,6 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.subscriptions import router as subscriptions_router
+from app.api.ai import router as ai_router
 from app.api.reliability import router as reliability_router
 from app.core.engine import (
     classify_contract_drift,
@@ -27,6 +28,7 @@ from app.core.engine import (
 from app.core.parser import fingerprint_schema, normalize_types, structural_string
 from app.db import close_db, get_db
 from app.runtime.document_store import build_document_store
+from app.runtime.contract_review import build_review_provider
 from app.runtime.events import build_default_publisher
 from app.runtime.metrics import metrics_payload
 from app.runtime.service import track_contract
@@ -42,6 +44,7 @@ class PayloadSubmission(BaseModel):
 
 
 document_store = build_document_store()
+contract_review_provider = build_review_provider()
 
 
 @asynccontextmanager
@@ -61,6 +64,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="DriftGate Contract Guard", version="1.0.0", lifespan=lifespan)
 app.state.document_store = document_store
+app.state.contract_review_provider = contract_review_provider
 
 frontend_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5174").split(",") if origin.strip()]
 app.add_middleware(
@@ -183,10 +187,18 @@ async def track_payload(
 
 
 @app.get("/api/v1/metrics")
-async def fetch_runtime_metrics(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def fetch_runtime_metrics(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     from app.core.engine import get_runtime_metrics
 
-    return await get_runtime_metrics(db)
+    metrics = await get_runtime_metrics(db)
+    store = getattr(request.app.state, "document_store", None)
+    if store is not None and hasattr(store, "list_contract_reviews"):
+        reviews = await store.list_contract_reviews(limit=200)
+        metrics["contract_review_count"] = len(reviews)
+        metrics["contract_review_insufficient_evidence_count"] = len(
+            [item for item in reviews if item.get("review", {}).get("insufficient_evidence")]
+        )
+    return metrics
 
 
 @app.get("/metrics")
@@ -196,4 +208,5 @@ async def prometheus_metrics() -> Response:
 
 
 app.include_router(subscriptions_router)
+app.include_router(ai_router)
 app.include_router(reliability_router)
