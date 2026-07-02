@@ -30,6 +30,10 @@ WEBHOOK_DELIVERY_FAILURES_TOTAL = Counter(
 KAFKA_PUBLISH_FAILURES_TOTAL = Counter(
     "kafka_publish_failures_total", "Kafka publish failures"
 )
+DRIFT_EVENT_PUBLISH_FAILURES_TOTAL = Counter(
+    "drift_event_publish_failures_total", "Failed drift-event publications"
+)
+DRIFT_EVENT_DLQ_SIZE = Gauge("drift_event_dlq_size", "Current drift-event DLQ row count")
 CONTRACT_REVIEW_LATENCY_SECONDS = Histogram(
     "contract_review_latency_seconds",
     "Latency for the contract review workflow",
