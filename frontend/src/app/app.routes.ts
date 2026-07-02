@@ -9,6 +9,9 @@ import { OverviewPage } from './pages/overview.page';
 import { ReviewPage } from './pages/review.page';
 import { RegistryPage } from './pages/registry.page';
 import { ReliabilityPage } from './pages/reliability.page';
+import { BenchmarkPage } from './pages/benchmark.page';
+import { ObservabilityPage } from './pages/observability.page';
+import { ArchitecturePage } from './pages/architecture.page';
 
 export const routes: Routes = [
   { path: '', component: LandingPage },
@@ -25,6 +28,9 @@ export const routes: Routes = [
       { path: 'replay', redirectTo: 'reliability', pathMatch: 'full' },
       { path: 'documents', component: DocumentsPage },
       { path: 'review', component: ReviewPage },
+      { path: 'benchmark', component: BenchmarkPage },
+      { path: 'observability', component: ObservabilityPage },
+      { path: 'architecture', component: ArchitecturePage },
     ],
   },
   { path: 'overview', redirectTo: 'app/overview', pathMatch: 'full' },
@@ -35,5 +41,8 @@ export const routes: Routes = [
   { path: 'replay', redirectTo: 'app/reliability', pathMatch: 'full' },
   { path: 'documents', redirectTo: 'app/documents', pathMatch: 'full' },
   { path: 'review', redirectTo: 'app/review', pathMatch: 'full' },
+  { path: 'benchmark', redirectTo: 'app/benchmark', pathMatch: 'full' },
+  { path: 'observability', redirectTo: 'app/observability', pathMatch: 'full' },
+  { path: 'architecture', redirectTo: 'app/architecture', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];
