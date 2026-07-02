@@ -116,6 +116,34 @@
   gap: 12px;
 }
 
+.signal-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.signal-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(128, 170, 205, 0.12);
+  display: grid;
+  gap: 4px;
+  animation: reveal 0.8s ease both;
+}
+
+.signal-card span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.signal-card strong {
+  font-family: "Rajdhani", "IBM Plex Sans", sans-serif;
+  font-size: 1.5rem;
+}
+
 .metric-card {
   padding: 16px;
   border-radius: 20px;
@@ -158,6 +186,52 @@
   color: var(--text);
   text-decoration: none;
   border-bottom: 1px solid rgba(52, 212, 198, 0.28);
+}
+
+.severity-pulse {
+  animation: pulse 2.8s ease-in-out infinite;
+}
+
+.delivery-map {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.delivery-map.compact-map {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.delivery-node {
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(128, 170, 205, 0.12);
+  color: var(--muted);
+}
+
+.delivery-node.active {
+  color: #08131d;
+  background: linear-gradient(135deg, rgba(52, 212, 198, 0.92), rgba(240, 163, 75, 0.86));
+  border-color: rgba(52, 212, 198, 0.2);
+}
+
+.delivery-arrow {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(52, 212, 198, 0.9), rgba(240, 163, 75, 0.25));
+  position: relative;
+  overflow: hidden;
+}
+
+.delivery-arrow::after {
+  content: "";
+  position: absolute;
+  inset: -3px auto -3px 0;
+  width: 36px;
+  background: linear-gradient(90deg, transparent, rgba(52, 212, 198, 0.9), transparent);
+  animation: route 2.8s linear infinite;
 }
 
 .section {
@@ -322,12 +396,84 @@
   font-size: 2rem;
 }
 
+.timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(128, 170, 205, 0.12);
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(52, 212, 198, 0.96), rgba(240, 163, 75, 0.88));
+  box-shadow: 0 0 0 6px rgba(52, 212, 198, 0.08);
+}
+
+.timeline-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.timeline-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
 @keyframes drift {
   from {
     transform: translateY(0);
   }
   to {
     transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 0 rgba(52, 212, 198, 0.15);
+  }
+
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 8px rgba(52, 212, 198, 0);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes route {
+  from {
+    transform: translateX(-24px);
+  }
+
+  to {
+    transform: translateX(220px);
   }
 }
 
@@ -342,6 +488,11 @@
   .architecture-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .signal-strip,
+  .delivery-map {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 840px) {
@@ -349,7 +500,10 @@
   .two-up,
   .grid.cards-4,
   .architecture-grid,
-  .metric-grid {
+  .metric-grid,
+  .signal-strip,
+  .delivery-map,
+  .delivery-map.compact-map {
     grid-template-columns: 1fr;
   }
 
@@ -357,5 +511,9 @@
   .section-heading,
   .footer {
     flex-direction: column;
+  }
+
+  .delivery-arrow {
+    display: none;
   }
 }

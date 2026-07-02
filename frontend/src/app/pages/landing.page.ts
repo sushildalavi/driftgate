@@ -56,85 +56,87 @@ export class LandingPage {
     'Payload and diff history',
     'DLQ replay',
     'Contract review',
-    'Azure-ready event backend',
+    'Benchmark explorer',
+    'Observability surface',
+    'Azure-compatible event backend',
   ];
 
   readonly demoCards = [
     {
-      label: 'Seeded demo',
-      title: 'Breaking schema diff',
+      label: 'Schema diff',
+      title: 'Breaking contract change',
       severity: 'breaking',
-      copy: 'Removed required `price` and tightened a consumer-facing payload.',
+      copy: 'A required field disappears, the diff view highlights the break, and the review flow keeps the evidence attached.',
     },
     {
-      label: 'Seeded demo',
-      title: 'Risky change',
+      label: 'Delivery path',
+      title: 'Webhook retry lane',
       severity: 'risky',
-      copy: 'Nullable field became required after a service contract update.',
+      copy: 'HMAC ingress, retry attempts, and the webhook DLQ stay visible from a single operator console.',
     },
     {
-      label: 'Seeded demo',
-      title: 'Failed delivery',
+      label: 'Replay lane',
+      title: 'DLQ recovery',
       severity: 'risky',
-      copy: 'Delivery retries accumulated and the event moved to the DLQ.',
+      copy: 'Replay actions are explicit, audited, and separated from drift-event publishing failures.',
     },
     {
-      label: 'Seeded demo',
-      title: 'Replay item',
+      label: 'Severity pulse',
+      title: 'Risk classification',
       severity: 'compatible',
-      copy: 'Replay completed after the downstream issue was cleared.',
+      copy: 'Safe, risky, and breaking states are surfaced with clear badges and severity-aware routing.',
     },
     {
-      label: 'Seeded demo',
-      title: 'Contract review',
+      label: 'Evidence graph',
+      title: 'Grounded review',
       severity: 'review',
-      copy: 'Grounded review summarizes evidence, migration note, and consumer impact.',
+      copy: 'Schema diffs, payload snapshots, validation errors, subscriptions, and DLQ rows all feed the review.',
     },
   ];
 
-  readonly verificationFacts = [
+  readonly proofCards = [
     {
-      title: 'Backend pytest',
-      value: '59 passed',
-      detail: 'Current workspace backend and runtime test run.',
+      title: 'API governance',
+      value: 'Live',
+      detail: 'Registry, version history, subscriptions, and schema diffs are wired through the runtime and monitor.',
     },
     {
-      title: 'Angular lint',
-      value: 'passed',
-      detail: 'Front-end linting completed successfully.',
+      title: 'Runtime reliability',
+      value: 'Live',
+      detail: 'HMAC ingress, transactional outbox, webhook DLQ, and drift-event DLQ are implemented separately.',
     },
     {
-      title: 'Angular build',
-      value: 'passed',
-      detail: 'Production build completed successfully.',
+      title: 'Azure compatibility',
+      value: 'Ready',
+      detail: 'Azure Service Bus and Cosmos-style adapters are configurable without claiming deployment.',
     },
     {
-      title: 'Angular tests',
-      value: '4 passed',
-      detail: 'ChromeHeadless component and service tests.',
+      title: 'Load validation',
+      value: 'Documented',
+      detail: 'k6 scripts and reproducible benchmark exports are generated from raw run output.',
     },
   ];
 
   readonly architectureNodes = [
     {
-      title: 'Gateway',
-      detail: 'Ingress, verification, request normalization, and event publication.',
+      title: 'Gateway ingress',
+      detail: 'HMAC verification, idempotency handling, and normalized event forwarding.',
     },
     {
       title: 'Runtime API',
-      detail: 'FastAPI orchestration, schema drift capture, and contract review.',
+      detail: 'FastAPI contract tracking, drift capture, contract review, and replay orchestration.',
     },
     {
       title: 'Metadata store',
-      detail: 'PostgreSQL endpoint registry, versions, subscriptions, and history.',
+      detail: 'PostgreSQL stores endpoints, snapshots, delivery attempts, subscriptions, and DLQs.',
     },
     {
       title: 'Document store',
-      detail: 'MongoDB / Cosmos-compatible evidence store for payload and review artifacts.',
+      detail: 'MongoDB / Cosmos-compatible evidence store for payload snapshots and review artifacts.',
     },
     {
       title: 'Angular console',
-      detail: 'Operator UI for governance, reliability, and review workflows.',
+      detail: 'Enterprise-style operator UI for governance, reliability, and replay workflows.',
     },
   ];
 

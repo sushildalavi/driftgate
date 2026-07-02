@@ -1,38 +1,37 @@
 <div class="landing">
   <section class="hero card">
     <div class="hero-copy">
-      <p class="eyebrow">DriftGate</p>
-      <h1>Catch breaking API changes before consumers do.</h1>
+      <p class="eyebrow">DriftGate control room</p>
+      <h1>API governance, runtime drift, and replay in one operator surface.</h1>
       <p class="lede">
-        DriftGate combines contract governance, webhook reliability, schema drift evidence, payload history, and guided review
-        into one local-first platform. Run it in Docker, wire it to Azure Service Bus or Cosmos-compatible storage when you need
-        them, and keep the whole workflow explainable.
+        DriftGate keeps schema governance, webhook reliability, contract review, and document-backed evidence in one local-first
+        platform. The stack is built for backend, Azure, and AI-agent platform roles without pretending the cloud path is deployed.
       </p>
 
       <div class="cta-row">
-        <a class="button" routerLink="/app/overview">Open demo</a>
-        <a class="button secondary" routerLink="/app/review">View contract review</a>
+        <a class="button" routerLink="/app/overview">Open control room</a>
+        <a class="button secondary" routerLink="/app/review">View evidence review</a>
         <a class="button secondary" href="https://github.com/sushildalavi/driftgate" target="_blank" rel="noreferrer">
           GitHub
         </a>
       </div>
 
       <div class="hero-chips">
-        <span>Angular</span>
-        <span>FastAPI</span>
-        <span>PostgreSQL</span>
-        <span>MongoDB / Cosmos-compatible</span>
-        <span>Azure Service Bus-ready</span>
+        <span>Angular console</span>
+        <span>FastAPI runtime</span>
+        <span>PostgreSQL metadata</span>
+        <span>Mongo / Cosmos-compatible docs</span>
+        <span>Azure-compatible adapters</span>
       </div>
     </div>
 
     <div class="hero-panel">
       <div class="panel-header">
         <div>
-          <p class="panel-label">Live platform snapshot</p>
-          <h2>Operational control center</h2>
+          <p class="panel-label">Live telemetry</p>
+          <h2>Operational snapshot</h2>
         </div>
-        <span class="tag">Local-first</span>
+        <span class="tag severity-pulse">Severity pulse</span>
       </div>
 
       @if (loading()) {
@@ -51,18 +50,43 @@
             <article class="metric-card">
               <span>Endpoints</span>
               <strong>{{ overview.metrics.endpoint_count }}</strong>
-              <p>Registered contracts under governance.</p>
+              <p>Contracts under governance.</p>
             </article>
             <article class="metric-card">
               <span>Snapshots</span>
               <strong>{{ overview.metrics.snapshot_count }}</strong>
-              <p>Runtime and monitor observations stored locally.</p>
+              <p>Runtime and monitor evidence captured locally.</p>
             </article>
             <article class="metric-card">
-              <span>Contract reviews</span>
+              <span>Reviews</span>
               <strong>{{ overview.metrics.contract_review_count ?? 0 }}</strong>
-              <p>Evidence-backed review records in the document store.</p>
+              <p>Evidence-backed contract reviews stored in the runtime.</p>
             </article>
+          </div>
+
+          <div class="signal-strip">
+            <div class="signal-card">
+              <span>Webhook DLQ</span>
+              <strong>{{ overview.metrics.dlq_count ?? 0 }}</strong>
+            </div>
+            <div class="signal-card">
+              <span>Drift-event DLQ</span>
+              <strong>{{ overview.metrics.drift_event_dlq_count ?? 0 }}</strong>
+            </div>
+            <div class="signal-card">
+              <span>Retry pressure</span>
+              <strong>{{ overview.metrics.retry_count ?? 0 }}</strong>
+            </div>
+          </div>
+
+          <div class="delivery-map">
+            <div class="delivery-node active">Ingress</div>
+            <div class="delivery-arrow"></div>
+            <div class="delivery-node">Runtime</div>
+            <div class="delivery-arrow"></div>
+            <div class="delivery-node">Outbox</div>
+            <div class="delivery-arrow"></div>
+            <div class="delivery-node">DLQ / Replay</div>
           </div>
 
           <div class="live-list">
@@ -78,14 +102,20 @@
             </div>
 
             <div class="live-row">
-              <span class="tag">Active endpoints</span>
-              <div class="stack compact">
+              <span class="tag">Registry timeline</span>
+              <div class="timeline">
                 @for (endpoint of overview.endpoints.slice(0, 3); track endpoint.id) {
-                  <div class="preview-line">
-                    <a [routerLink]="['/app/registry', endpoint.id]">{{ endpoint.name }}</a>
-                    <span>{{ endpoint.method }}</span>
-                    <span>{{ endpoint.provider }}</span>
-                  </div>
+                  <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div>
+                      <div class="timeline-row">
+                        <strong>{{ endpoint.name }}</strong>
+                        <span class="tag">{{ endpoint.method }}</span>
+                      </div>
+                      <p>{{ endpoint.url }}</p>
+                      <p class="mono">{{ endpoint.latest_snapshot_hash ?? 'awaiting snapshot' }}</p>
+                    </div>
+                  </article>
                 }
               </div>
             </div>
@@ -102,8 +132,8 @@
         <h2>Why DriftGate exists</h2>
       </div>
       <p class="section-copy">
-        Teams need to see drift, retries, payloads, and review evidence together. If the data lives in separate tools, important
-        changes get approved without context.
+        The product is designed to keep drift, retries, payloads, and review evidence together instead of scattering them across
+        separate tools.
       </p>
     </div>
 
@@ -115,6 +145,57 @@
         </article>
       }
     </div>
+  </section>
+
+  <section class="section grid two-up">
+    <article class="card">
+      <div class="section-heading">
+        <div>
+          <p class="panel-label">Control signals</p>
+          <h2>What the operator sees first</h2>
+        </div>
+        <span class="tag severity-pulse">Animated state</span>
+      </div>
+
+      <div class="grid cols-2">
+        @for (card of proofCards; track card.title) {
+          <article class="mini-card">
+            <h3>{{ card.title }}</h3>
+            <strong class="fact-value">{{ card.value }}</strong>
+            <p>{{ card.detail }}</p>
+          </article>
+        }
+      </div>
+    </article>
+
+    <article class="card demo-detail">
+      <div class="section-heading">
+        <div>
+          <p class="panel-label">Animated flow</p>
+          <h2>{{ currentDemo().title }}</h2>
+        </div>
+        <a class="tag" routerLink="/app/review">Open review</a>
+      </div>
+      <p class="demo-copy">{{ currentDemo().copy }}</p>
+      <div class="delivery-map compact-map">
+        <div class="delivery-node active">Schema diff</div>
+        <div class="delivery-arrow"></div>
+        <div class="delivery-node">Evidence</div>
+        <div class="delivery-arrow"></div>
+        <div class="delivery-node">Replay</div>
+      </div>
+      <div class="demo-list">
+        @for (card of demoCards; track card.title; let index = $index) {
+          <button class="demo-card" type="button" [class.active]="activeDemo() === index" (click)="selectDemo(index)">
+            <span class="tag">{{ card.label }}</span>
+            <strong>{{ card.title }}</strong>
+            <span class="tag" [class.breaking]="card.severity === 'breaking'" [class.risky]="card.severity === 'risky'">
+              {{ card.severity }}
+            </span>
+          </button>
+        }
+      </div>
+    </article>
   </section>
 
   <section class="section card">
@@ -140,83 +221,6 @@
             <span class="step-connector"></span>
           }
         </div>
-      }
-    </div>
-  </section>
-
-  <section class="section card">
-    <div class="section-heading">
-      <div>
-        <p class="panel-label">Features</p>
-        <h2>Enterprise controls without the enterprise bloat</h2>
-      </div>
-      <p class="section-copy">Everything is designed to explain why a change is risky, breaking, or safe.</p>
-    </div>
-
-    <div class="grid cards-4">
-      @for (card of featureCards; track card) {
-        <div class="feature-chip">{{ card }}</div>
-      }
-    </div>
-  </section>
-
-  <section class="section grid two-up">
-    <article class="card">
-      <div class="section-heading">
-        <div>
-          <p class="panel-label">Demo preview</p>
-          <h2>Seeded examples from the governance flow</h2>
-        </div>
-        <span class="tag">Illustrative only</span>
-      </div>
-
-      <div class="demo-list">
-        @for (card of demoCards; track card.title; let index = $index) {
-          <button class="demo-card" type="button" [class.active]="activeDemo() === index" (click)="selectDemo(index)">
-            <span class="tag">{{ card.label }}</span>
-            <strong>{{ card.title }}</strong>
-            <span class="tag" [class.breaking]="card.severity === 'breaking'" [class.risky]="card.severity === 'risky'">
-              {{ card.severity }}
-            </span>
-          </button>
-        }
-      </div>
-    </article>
-
-    <article class="card demo-detail">
-      <div class="section-heading">
-        <div>
-          <p class="panel-label">Selected demo</p>
-          <h2>{{ currentDemo().title }}</h2>
-        </div>
-        <a class="tag" routerLink="/app/review">Open review</a>
-      </div>
-      <p class="demo-copy">{{ currentDemo().copy }}</p>
-      <div class="demo-footer">
-        <span class="tag">{{ currentDemo().label }}</span>
-        <span class="tag">{{ currentDemo().severity }}</span>
-      </div>
-    </article>
-  </section>
-
-  <section class="section card">
-    <div class="section-heading">
-      <div>
-        <p class="panel-label">Reliability</p>
-        <h2>Validated locally, not claimed as production load</h2>
-      </div>
-      <p class="section-copy">
-        These are workspace facts from the latest verification run, not a sustained production benchmark.
-      </p>
-    </div>
-
-    <div class="grid cards-4">
-      @for (fact of verificationFacts; track fact.title) {
-        <article class="mini-card">
-          <h3>{{ fact.title }}</h3>
-          <strong class="fact-value">{{ fact.value }}</strong>
-          <p>{{ fact.detail }}</p>
-        </article>
       }
     </div>
   </section>
