@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS ix_consumer_subscriptions_endpoint_active_threshold_version
+ON consumer_subscriptions(endpoint_id, active, severity_threshold, schema_version);
