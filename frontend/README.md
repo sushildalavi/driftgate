@@ -9,7 +9,7 @@ npm install
 npm start
 ```
 
-The app is served on `http://localhost:4200` in development and `http://localhost:5173` when served through Docker Compose.
+The app is served on `http://localhost:5173` in development and `http://localhost:5173` when served through Docker Compose.
 
 ## Validation
 
