@@ -1,0 +1,27 @@
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <p class="meta">Azure-compatible architecture</p>
+        <h3>Local-first, cloud-ready deployment model</h3>
+      </div>
+      <div class="tag-row">
+        <a class="tag" routerLink="/app/overview">Overview</a>
+        <a class="tag" routerLink="/app/review">AI review</a>
+      </div>
+    </div>
+
+    <p class="section-copy">
+      The goal is compatibility with Azure-shaped infrastructure, not a claim that cloud resources are already provisioned.
+    </p>
+  </section>
+
+  <section class="grid cols-3">
+    @for (layer of layers; track layer.title) {
+      <article class="architecture-card">
+        <h3>{{ layer.title }}</h3>
+        <p>{{ layer.detail }}</p>
+      </article>
+    }
+  </section>
+</div>
