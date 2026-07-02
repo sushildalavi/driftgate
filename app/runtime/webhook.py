@@ -24,7 +24,7 @@ async def upsert_dlq(
     attempt_count: int,
 ) -> None:
     started = datetime.now(timezone.utc)
-    await db.execute(
+    inserted = await db.execute(
         text(
             """
             INSERT INTO webhook_delivery_dlq(
@@ -38,6 +38,7 @@ async def upsert_dlq(
                 failure_reason = EXCLUDED.failure_reason,
                 attempt_count = GREATEST(webhook_delivery_dlq.attempt_count, EXCLUDED.attempt_count),
                 last_attempt_at = NOW()
+            RETURNING xmax = 0 AS inserted
             """
         ),
         {
@@ -50,8 +51,9 @@ async def upsert_dlq(
             "attempt_count": attempt_count,
         },
     )
-    count_row = await db.execute(text("SELECT COUNT(*) FROM webhook_delivery_dlq"))
-    DLQ_SIZE.set(float(count_row.scalar_one()))
+    row = inserted.first()
+    if row is not None and bool(row[0]):
+        DLQ_SIZE.inc()
     WEBHOOK_PUBLISH_LATENCY_SECONDS.observe((datetime.now(timezone.utc) - started).total_seconds())
 
 
