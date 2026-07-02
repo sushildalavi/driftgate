@@ -1,18 +1,31 @@
 # DriftGate
 
-DriftGate tracks JSON API contract drift.
+DriftGate is a local-first API contract governance and runtime reliability platform.
 
 This repository currently contains three runtime services:
 
 - `backend/`: scheduled API monitor and changelog service
 - `gateway/`: Node.js/TypeScript webhook gateway with HMAC and idempotency checks
-- root `app/`: runtime contract guard, webhook outbox, and drift event pipeline
-- `frontend/`: Angular product site and application console for registry, drift review, DLQ, and document-store browsing
+- root `app/`: runtime contract guard, webhook outbox, drift-event DLQ, and evidence-backed review pipeline
+- `frontend/`: Angular product site and application console for registry, drift review, DLQ, observability, and document-store browsing
 
 It has two paths:
 
 1. Scheduled drift monitoring for live endpoints.
 2. Runtime contract guarding for payload samples submitted by middleware.
+
+## One-command quickstart
+
+```bash
+docker compose up -d --build
+curl -X POST http://localhost:8301/api/monitor/run-once \
+  -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
+```
+
+- Landing page: `http://localhost:5173/`
+- Monitor API: `http://localhost:8301`
+- Runtime guard API: `http://localhost:8302`
+- Gateway: `http://localhost:8303`
 
 ## What it does
 
@@ -21,7 +34,7 @@ It has two paths:
 - Diffs schema changes and classifies severity
 - Persists snapshots and violations
 - Stores payload snapshots, schema diffs, validation errors, and replay artifacts in a MongoDB-compatible document store
-- Powers a dashboard for triage and history
+- Powers a dashboard for triage, AI review, and history
 - Supports an event-backend abstraction for drift publishing
 
 ## Architecture
@@ -64,6 +77,9 @@ flowchart LR
 - `/app/registry` schema registry and ownership
 - `/app/diffs` schema drift viewer
 - `/app/reliability` webhook retries and DLQ replay
+- `/app/benchmark` benchmark explorer
+- `/app/observability` telemetry and health surface
+- `/app/architecture` Azure-compatible architecture view
 - `/app/documents` payload and diff history
 - `/app/review` contract review workflow
 
@@ -71,7 +87,7 @@ flowchart LR
 
 ```bash
 docker compose up -d --build
-curl -X POST http://localhost:18080/api/monitor/run-once \
+curl -X POST http://localhost:8301/api/monitor/run-once \
   -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
 ```
 
@@ -88,13 +104,13 @@ Runtime event delivery is environment driven:
 - `DOCUMENT_STORE_BACKEND=memory` for tests and minimal local mode
 - `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB or Cosmos-compatible deployments
 
-The code is structured for Azure-ready deployment, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-ready" does and doesn't mean here.
+The code is structured for Azure-compatible deployment, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-compatible" does and doesn't mean here.
 
 ## Documentation
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system design and data paths
 - [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) — running each service locally
-- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) — Azure-ready event backend and Cosmos-compatible document store notes (not deployed)
+- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) — Azure-compatible event backend and Cosmos-compatible document store notes (not deployed)
 - [docs/FAILURE_MODES.md](docs/FAILURE_MODES.md) — how each component behaves on failure
 - [docs/BENCHMARKS.md](docs/BENCHMARKS.md) — measured k6 load test results
 - [DEPLOY.md](DEPLOY.md) — free-tier deploy guide (Neon + Cloud Run + Vercel)
