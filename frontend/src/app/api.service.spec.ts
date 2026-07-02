@@ -25,7 +25,7 @@ describe('ApiService', () => {
       expect(response.review.decision).toBe('approve');
     });
 
-    const req = httpMock.expectOne('http://localhost:8018/api/v1/ai/contract-review');
+    const req = httpMock.expectOne('http://localhost:8302/api/v1/ai/contract-review');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
       endpoint_id: 'endpoint-123',
@@ -63,6 +63,10 @@ describe('ApiService', () => {
         severity: 'compatible',
         summary: 'Compatible',
         consumer_impact: 'No active consumers',
+        impacted_consumers: [],
+        severity_explanation: 'No grounded evidence suggests consumer impact.',
+        risk_summary: 'Current evidence does not show an immediate consumer break.',
+        rollout_action: 'Proceed with rollout and keep the evidence bundle attached to the release record.',
         evidence: ['[snapshot:1] safe baseline'],
         recommended_fixes: [],
         migration_note: 'No migration required.',
@@ -80,7 +84,7 @@ describe('ApiService', () => {
 
     const req = httpMock.expectOne((request) => {
       return (
-        request.url === 'http://localhost:8018/api/v1/ai/contract-reviews' &&
+        request.url === 'http://localhost:8302/api/v1/ai/contract-reviews' &&
         request.params.get('endpoint_id') === 'endpoint-123' &&
         request.params.get('limit') === '10'
       );
@@ -118,6 +122,10 @@ describe('ApiService', () => {
           severity: 'compatible',
           summary: 'Compatible',
           consumer_impact: 'No active consumers',
+          impacted_consumers: [],
+          severity_explanation: 'No grounded evidence suggests consumer impact.',
+          risk_summary: 'Current evidence does not show an immediate consumer break.',
+          rollout_action: 'Proceed with rollout and keep the evidence bundle attached to the release record.',
           evidence: ['[snapshot:1] safe baseline'],
           recommended_fixes: [],
           migration_note: 'No migration required.',

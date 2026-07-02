@@ -8,6 +8,7 @@ export interface MonitorMetrics {
   retry_count?: number;
   contract_review_count?: number;
   contract_review_insufficient_evidence_count?: number;
+  drift_event_dlq_count?: number;
 }
 
 export interface EndpointRecord {
@@ -79,6 +80,24 @@ export interface DlqEntry {
   last_attempt_at: string;
 }
 
+export interface DriftEventDlqEntry {
+  id: string;
+  event_id: string;
+  endpoint_id: string;
+  endpoint_name: string;
+  namespace: string;
+  payload: Record<string, unknown>;
+  failure_reason: string;
+  publisher_name: string;
+  attempt_count: number;
+  status: 'PENDING' | 'REPLAYED';
+  replay_error?: string | null;
+  created_at: string;
+  updated_at: string;
+  last_failure_at: string;
+  replayed_at?: string | null;
+}
+
 export interface DeliveryAttempt {
   id: string;
   event_id: string;
@@ -116,6 +135,13 @@ export interface ReplayResult {
   replayed_at: string;
 }
 
+export interface DriftEventReplayResult {
+  replayed: boolean;
+  error?: string | null;
+  already_replayed?: boolean;
+  dlq?: DriftEventDlqEntry | null;
+}
+
 export interface ContractReviewEvidenceItem {
   citation: string;
   kind: string;
@@ -128,6 +154,10 @@ export interface ContractReviewOutcome {
   severity: 'compatible' | 'risky' | 'breaking';
   summary: string;
   consumer_impact: string;
+  impacted_consumers?: string[];
+  severity_explanation?: string;
+  risk_summary?: string;
+  rollout_action?: string;
   evidence: string[];
   recommended_fixes: string[];
   migration_note: string;
