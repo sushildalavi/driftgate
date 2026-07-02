@@ -1,4 +1,4 @@
-# Azure Deployment Notes (Azure-Ready, Not Deployed)
+# Azure Deployment Notes (Azure-Compatible, Not Deployed)
 
 DriftGate's event backend and document store are built to run against Azure services
 without code changes, but **this repository has not been deployed to Azure**. Nothing
@@ -11,7 +11,7 @@ No Azure resources are required to run or test DriftGate. Local development and 
 the no-op event backend and a local/Docker MongoDB instance. Only enable the Azure paths
 below if you intentionally want to pay for and manage that infrastructure.
 
-## Event backend: Azure Service Bus-ready
+## Event backend: Azure Service Bus-compatible
 
 `app/runtime/event_backends.py` defines `AzureServiceBusEventBackend`, selected via:
 
@@ -54,7 +54,7 @@ changes are needed. This has been reviewed for compatibility but **not run again
 live Cosmos account** — validate index behavior and RU consumption before relying on it
 for anything beyond a portfolio demo.
 
-## What "Azure-ready" means here
+## What "Azure-compatible" means here
 
 - The code paths exist and are unit-tested against fakes/mocks.
 - The abstractions (event backend protocol, document store protocol) do not assume a

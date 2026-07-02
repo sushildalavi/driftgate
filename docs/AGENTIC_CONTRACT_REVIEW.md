@@ -1,27 +1,36 @@
 # Agentic Contract Review
 
-The DriftGate contract review agent is a deterministic wrapper around the existing OpenAPI diff logic.
+DriftGate now treats contract review as a grounded AI workflow, not a thin wrapper around schema diffs.
 
 ## Workflow
 
-1. OpenAPI Diff Agent
-2. Breaking Change Classifier
-3. Migration Suggestion Agent
-4. CI Gate Agent
-5. PR Comment Generator
+1. Evidence bundle collection
+2. Schema diff citation synthesis
+3. Payload and validation citation synthesis
+4. DLQ and delivery-attempt citation synthesis
+5. Deterministic heuristic review
+6. Optional OpenAI, Gemini, or Ollama review
+7. Strict schema validation and grounding checks
+8. Document-store persistence of the final review artifact
 
 ## Output
 
-- breaking changes
-- non-breaking changes
-- risk level
-- suggested migration
-- CI decision
-- PR comment markdown
-- trace
+- decision
+- severity
+- confidence
+- evidence citations
+- impacted consumers
+- severity explanation
+- risk summary
+- migration note
+- rollout action
+- recommended fixes
+- review comment markdown
 
 ## Guardrails
 
-- The agent does not merge code.
-- The agent does not replace the canonical diff engine.
-- Output is based on fixture files or local OpenAPI payloads only.
+- The heuristic reviewer remains the default.
+- External model providers are optional and must be enabled explicitly or via keys.
+- Model output is rejected when the response schema fails validation.
+- Unsupported claims are rejected if they are not grounded in evidence citations.
+- The final review artifact is stored in the document store for auditability.
