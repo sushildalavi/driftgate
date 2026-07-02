@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from typing import Any
@@ -13,7 +14,8 @@ from app.runtime.metrics import ADVISORY_LOCK_WAIT_SECONDS
 
 def _lock_id(namespace: str, service_name: str, method: str, route: str) -> int:
     key = f"{namespace}:{service_name}:{method}:{route}"
-    return abs(hash(key)) % 2147483647
+    digest = hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
+    return int(digest, 16) % 2147483647
 
 
 async def ensure_endpoint(
@@ -25,36 +27,14 @@ async def ensure_endpoint(
     route_path: str,
 ) -> tuple[str, str]:
     endpoint_name = f"{service_name} {http_method} {route_path}"
-
-    existing = await db.execute(
-        text(
-            """
-            SELECT id::text, endpoint_name
-            FROM contract_registry_endpoints
-            WHERE namespace = :namespace
-              AND service_name = :service_name
-              AND http_method = :http_method
-              AND route_path = :route_path
-            LIMIT 1
-            """
-        ),
-        {
-            "namespace": namespace,
-            "service_name": service_name,
-            "http_method": http_method,
-            "route_path": route_path,
-        },
-    )
-    row = existing.first()
-    if row is not None:
-        return row[0], row[1]
-
-    await db.execute(
+    created = await db.execute(
         text(
             """
             INSERT INTO contract_registry_endpoints(namespace, service_name, http_method, route_path, endpoint_name)
             VALUES (:namespace, :service_name, :http_method, :route_path, :endpoint_name)
-            ON CONFLICT (namespace, service_name, http_method, route_path) DO NOTHING
+            ON CONFLICT (namespace, service_name, http_method, route_path)
+            DO NOTHING
+            RETURNING id::text, endpoint_name
             """
         ),
         {
@@ -65,27 +45,28 @@ async def ensure_endpoint(
             "endpoint_name": endpoint_name,
         },
     )
-
-    created = await db.execute(
-        text(
-            """
-            SELECT id::text, endpoint_name
-            FROM contract_registry_endpoints
-            WHERE namespace = :namespace
-              AND service_name = :service_name
-              AND http_method = :http_method
-              AND route_path = :route_path
-            LIMIT 1
-            """
-        ),
-        {
-            "namespace": namespace,
-            "service_name": service_name,
-            "http_method": http_method,
-            "route_path": route_path,
-        },
-    )
-    endpoint_id, name = created.one()
+    row = created.first()
+    if row is None:
+        existing = await db.execute(
+            text(
+                """
+                SELECT id::text, endpoint_name
+                FROM contract_registry_endpoints
+                WHERE namespace = :namespace
+                  AND service_name = :service_name
+                  AND http_method = :http_method
+                  AND route_path = :route_path
+                """
+            ),
+            {
+                "namespace": namespace,
+                "service_name": service_name,
+                "http_method": http_method,
+                "route_path": route_path,
+            },
+        )
+        row = existing.one()
+    endpoint_id, name = row
     return endpoint_id, name
 
 
@@ -193,9 +174,9 @@ async def upsert_schema_version(
     if current is not None:
         await db.execute(
             text(
-                "UPDATE contract_schema_versions SET is_current = FALSE WHERE endpoint_id = CAST(:endpoint_id AS uuid)"
+                "UPDATE contract_schema_versions SET is_current = FALSE WHERE id = CAST(:id AS uuid)"
             ),
-            {"endpoint_id": endpoint_id},
+            {"id": current.id},
         )
 
     inserted = await db.execute(
