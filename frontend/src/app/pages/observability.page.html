@@ -1,0 +1,45 @@
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <p class="meta">Observability</p>
+        <h3>Telemetry and health surface</h3>
+      </div>
+      <div class="tag-row">
+        <a class="tag" routerLink="/app/benchmark">Benchmarks</a>
+        <a class="tag" routerLink="/app/documents">Document store</a>
+      </div>
+    </div>
+
+    <p class="section-copy">
+      The platform stays interview-safe by showing concrete health URLs and metric names rather than implying a production
+      deployment that has not happened.
+    </p>
+  </section>
+
+  <section class="grid cols-2">
+    @for (endpoint of endpoints; track endpoint.label) {
+      <article class="card">
+        <p class="meta">{{ endpoint.label }}</p>
+        <h3>{{ endpoint.url }}</h3>
+        <p>{{ endpoint.detail }}</p>
+      </article>
+    }
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h3>Key metrics</h3>
+        <p>All are safe to expose locally and map cleanly to Prometheus/Grafana dashboards.</p>
+      </div>
+      <span class="tag">no fake telemetry</span>
+    </div>
+
+    <div class="tag-row">
+      @for (signal of signals; track signal) {
+        <span class="tag">{{ signal }}</span>
+      }
+    </div>
+  </section>
+</div>
