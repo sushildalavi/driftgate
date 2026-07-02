@@ -132,22 +132,35 @@ async def select_affected_subscriptions(
             WHERE endpoint_id = CAST(:endpoint_id AS uuid)
               AND active = TRUE
               AND (schema_version IS NULL OR schema_version <= :new_version)
+              AND (
+                CASE severity_threshold
+                    WHEN 'SAFE' THEN 0
+                    WHEN 'BACKWARD_COMPATIBLE' THEN 1
+                    WHEN 'FORWARD_COMPATIBLE' THEN 2
+                    WHEN 'RISKY' THEN 3
+                    WHEN 'BREAKING' THEN 4
+                    ELSE 0
+                END
+              ) <= :severity_rank
             """
         ),
-        {"endpoint_id": endpoint_id, "new_version": new_version},
+        {
+            "endpoint_id": endpoint_id,
+            "new_version": new_version,
+            "severity_rank": severity_rank(severity),
+        },
     )
     out = []
     for r in rows.fetchall():
-        if severity_rank(severity) >= severity_rank(r[4]):
-            out.append(
-                {
-                    "id": r[0],
-                    "consumer_id": r[1],
-                    "endpoint_id": r[2],
-                    "target_url": r[3],
-                    "severity_threshold": r[4],
-                    "schema_version": r[5],
-                    "active": r[6],
-                }
-            )
+        out.append(
+            {
+                "id": r[0],
+                "consumer_id": r[1],
+                "endpoint_id": r[2],
+                "target_url": r[3],
+                "severity_threshold": r[4],
+                "schema_version": r[5],
+                "active": r[6],
+            }
+        )
     return out

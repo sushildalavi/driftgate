@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.runtime.canonical import canonicalize, fingerprint
 from app.runtime.classifier import diff_and_classify, summarize_classification
@@ -54,6 +54,13 @@ async def _enqueue_webhook_outbox(
     )
 
     inline_delivery = os.getenv("INLINE_WEBHOOK_DELIVERY", "true").lower() == "true"
+    payload = {
+        "event_id": event_id,
+        "endpoint_id": endpoint_id,
+        "classification": classification,
+        "new_version": new_version,
+        "diffs": diffs,
+    }
 
     for sub in affected:
         outbox_row = await db.execute(
@@ -75,13 +82,7 @@ async def _enqueue_webhook_outbox(
             {
                 "subscription_id": sub["id"],
                 "endpoint_id": endpoint_id,
-                    "payload": json.dumps({
-                        "event_id": event_id,
-                        "endpoint_id": endpoint_id,
-                        "classification": classification,
-                        "new_version": new_version,
-                    "diffs": diffs,
-                    }),
+                "payload": json.dumps(payload),
                 },
             )
         outbox_id = outbox_row.scalar_one()
@@ -92,13 +93,7 @@ async def _enqueue_webhook_outbox(
                 event_id=event_id,
                 endpoint_id=endpoint_id,
                 subscription=sub,
-                payload={
-                    "event_id": event_id,
-                    "endpoint_id": endpoint_id,
-                    "classification": classification,
-                    "new_version": new_version,
-                    "diffs": diffs,
-                },
+                payload=payload,
                 max_attempts=1,
                 persist_dlq=True,
             )
@@ -122,11 +117,10 @@ async def _enqueue_webhook_outbox(
                         WHERE id = CAST(:id AS uuid)
                         """
                     ),
-                    {"id": outbox_id},
-                )
+                        {"id": outbox_id},
+                    )
 
-    pending = await db.execute(text("SELECT COUNT(*) FROM webhook_outbox WHERE status = 'PENDING'"))
-    OUTBOX_PENDING_GAUGE.set(float(pending.scalar_one()))
+    OUTBOX_PENDING_GAUGE.inc(len(affected))
     return len(affected)
 
 
@@ -139,6 +133,7 @@ async def track_contract(
     route_path: str,
     payload: dict[str, Any],
     publisher: EventPublisher,
+    session_factory: async_sessionmaker[AsyncSession] | None = None,
     document_store: DocumentStore | None = None,
 ) -> dict[str, Any]:
     start = time.perf_counter()
@@ -259,7 +254,7 @@ async def track_contract(
             schema_diff_summary=diffs,
             affected_consumer_count=affected_count,
         )
-        publish_fire_and_forget(publisher, event)
+        publish_fire_and_forget(publisher, event, session_factory=session_factory)
 
     elapsed = time.perf_counter() - start
     DRIFT_DETECTION_LATENCY_SECONDS.observe(elapsed)
