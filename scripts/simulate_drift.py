@@ -14,7 +14,7 @@ from typing import Any
 import httpx
 import psycopg2
 
-TRACK_URL = os.getenv("TRACK_URL", "http://localhost:8018/track")
+TRACK_URL = os.getenv("TRACK_URL", "http://localhost:8302/track")
 REQUESTS = int(os.getenv("SIM_REQUESTS", "5000"))
 CONCURRENCY = int(os.getenv("SIM_CONCURRENCY", "200"))
 OUTPUT_PATH = Path(

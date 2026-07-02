@@ -21,7 +21,7 @@ runtime-migrate:
 	DATABASE_URL_SYNC=postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime $(PYTHON) scripts/apply_runtime_migrations.py
 
 simulate: runtime-up runtime-migrate
-	TRACK_URL=http://localhost:8018/track \
+	TRACK_URL=http://localhost:8302/track \
 	DATABASE_URL_SYNC=postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime \
 	SIM_REQUESTS=5000 \
 	SIM_CONCURRENCY=200 \
@@ -30,9 +30,9 @@ simulate: runtime-up runtime-migrate
 
 demo:
 	docker compose up -d --build
-	until curl -sf http://localhost:18080/health >/dev/null; do sleep 2; done
-	curl -X POST http://localhost:18080/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: $${ADMIN_SECRET:-dev-secret}"
-	curl http://localhost:8018/api/v1/metrics
+	until curl -sf http://localhost:8301/health >/dev/null; do sleep 2; done
+	curl -X POST http://localhost:8301/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: $${ADMIN_SECRET:-dev-secret}"
+	curl http://localhost:8302/api/v1/metrics
 
 docker-config:
 	docker compose config

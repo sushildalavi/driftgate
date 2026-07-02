@@ -43,7 +43,7 @@ services:
       ADMIN_SECRET: ${ADMIN_SECRET:-dev-secret}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-claude-haiku-4-5-20251001}
-      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5175}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173}
       REGISTRY_PATH: /app/config/apis.yaml
       FETCH_TIMEOUT_SEC: 10
       RAW_BODY_MAX_BYTES: 262144
@@ -67,7 +67,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "5175:80"
+      - "5173:80"
     depends_on:
       - backend
 
@@ -96,7 +96,7 @@ services:
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
-      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5175}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173}
       DOCUMENT_STORE_BACKEND: mongo
       DOCUMENT_STORE_URI: mongodb://mongo:27017
       DOCUMENT_STORE_DATABASE: driftgate_documents
@@ -108,7 +108,7 @@ services:
       mongo:
         condition: service_started
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8302/api/v1/metrics')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8018/api/v1/metrics')"]
       interval: 10s
       timeout: 3s
       retries: 10
