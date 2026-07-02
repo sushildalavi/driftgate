@@ -90,9 +90,31 @@
                 {{ reviewRecord.review.severity }}
               </span>
               <span class="tag">confidence {{ reviewRecord.review.confidence }}</span>
+              <span class="tag">{{ reviewRecord.provider }}{{ reviewRecord.model_name ? ' / ' + reviewRecord.model_name : '' }}</span>
             </div>
             <p>{{ reviewRecord.review.summary }}</p>
             <p class="meta">{{ reviewRecord.review.consumer_impact }}</p>
+          </div>
+
+          <div class="grid cols-2">
+            <div class="card">
+              <h4>Severity explanation</h4>
+              <p>{{ reviewRecord.review.severity_explanation || 'No extra explanation is available for this review.' }}</p>
+              <p class="meta">{{ reviewRecord.review.risk_summary || 'No risk summary is available for this review.' }}</p>
+            </div>
+            <div class="card">
+              <h4>Rollout action</h4>
+              <p>{{ reviewRecord.review.rollout_action || 'No rollout recommendation is available for this review.' }}</p>
+              @if ((reviewRecord.review.impacted_consumers?.length ?? 0) > 0) {
+                <div class="tag-row">
+                  @for (consumer of reviewRecord.review.impacted_consumers ?? []; track consumer) {
+                    <span class="tag">{{ consumer }}</span>
+                  }
+                </div>
+              } @else {
+                <p class="meta">No impacted consumers were resolved from subscriptions.</p>
+              }
+            </div>
           </div>
 
           <div class="grid cols-2">
