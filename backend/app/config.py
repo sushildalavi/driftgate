@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     llm_model: str = "claude-haiku-4-5-20251001"
 
-    frontend_origins: str = "http://localhost:5174"
+    frontend_origins: str = "http://localhost:5175"
     registry_path: str = "/app/config/apis.yaml"
 
     fetch_timeout_sec: int = 10

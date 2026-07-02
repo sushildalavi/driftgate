@@ -45,6 +45,7 @@ class PayloadSubmission(BaseModel):
 
 document_store = build_document_store()
 contract_review_provider = build_review_provider()
+event_publisher = build_default_publisher()
 
 
 @asynccontextmanager
@@ -65,8 +66,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="DriftGate Contract Guard", version="1.0.0", lifespan=lifespan)
 app.state.document_store = document_store
 app.state.contract_review_provider = contract_review_provider
+app.state.event_publisher = event_publisher
 
-frontend_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5174").split(",") if origin.strip()]
+frontend_origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:5175").split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=frontend_origins,
@@ -103,7 +105,7 @@ async def track_payload(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    publisher = build_default_publisher()
+    publisher = getattr(request.app.state, "event_publisher", event_publisher)
     result = await track_contract(
         db,
         namespace=submission.namespace,

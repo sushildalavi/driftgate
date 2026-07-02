@@ -43,7 +43,7 @@ services:
       ADMIN_SECRET: ${ADMIN_SECRET:-dev-secret}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-claude-haiku-4-5-20251001}
-      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5174}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5175}
       REGISTRY_PATH: /app/config/apis.yaml
       FETCH_TIMEOUT_SEC: 10
       RAW_BODY_MAX_BYTES: 262144
@@ -54,7 +54,7 @@ services:
     volumes:
       - ./config:/app/config:ro
     ports:
-      - "18080:8000"
+      - "8301:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,7 +67,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "5174:80"
+      - "5175:80"
     depends_on:
       - backend
 
@@ -79,7 +79,7 @@ services:
       WEBHOOK_MAX_BODY_BYTES: ${WEBHOOK_MAX_BODY_BYTES:-262144}
       PORT: 3000
     ports:
-      - "3020:3000"
+      - "8303:3000"
     depends_on:
       runtime-guard:
         condition: service_started
@@ -96,19 +96,19 @@ services:
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
-      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5174}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5175}
       DOCUMENT_STORE_BACKEND: mongo
       DOCUMENT_STORE_URI: mongodb://mongo:27017
       DOCUMENT_STORE_DATABASE: driftgate_documents
     ports:
-      - "8018:8018"
+      - "8302:8018"
     depends_on:
       postgres:
         condition: service_healthy
       mongo:
         condition: service_started
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8018/api/v1/metrics')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8302/api/v1/metrics')"]
       interval: 10s
       timeout: 3s
       retries: 10

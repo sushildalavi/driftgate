@@ -16,7 +16,7 @@ docker compose up -d --build
 
 This brings up Postgres, the runtime guard, the webhook gateway, MongoDB (document
 store), and the Angular product site + app console. The landing page is served at
-`http://localhost:4200/` and the application shell starts at `/app/overview`.
+`http://localhost:5173/` and the application shell starts at `/app/overview`.
 Validate the compose file itself with:
 
 ```bash
@@ -26,9 +26,9 @@ docker compose config
 Trigger a one-off monitor run and check runtime metrics:
 
 ```bash
-curl -X POST http://localhost:18080/api/monitor/run-once \
+curl -X POST http://localhost:8301/api/monitor/run-once \
   -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
-curl http://localhost:8018/api/v1/metrics
+curl http://localhost:8302/api/v1/metrics
 ```
 
 ## Running services individually
@@ -103,7 +103,7 @@ See `.env.example` for the full list. The ones most relevant to local developmen
 | `EVENT_BACKEND` | `noop`, `kafka`, or `azure_service_bus` | `noop` |
 | `DOCUMENT_STORE_BACKEND` | `memory` or `mongo` | `memory` (tests), `mongo` (compose) |
 | `DOCUMENT_STORE_URI` | Mongo/Cosmos connection string | `mongodb://mongo:27017` |
-| `FRONTEND_ORIGINS` | CORS allow-list for the Angular dashboard | `http://localhost:4200` |
+| `FRONTEND_ORIGINS` | CORS allow-list for the Angular dashboard | `http://localhost:5173` |
 | `ADMIN_SECRET` | Header value required for admin endpoints | `dev-secret` |
 
 ## Load testing locally
