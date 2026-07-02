@@ -17,7 +17,7 @@ DriftGate monitors API drift, infers schema changes, and surfaces runtime guard 
 ## How to run locally
 
 - `docker compose up -d --build`
-  - `curl -X POST http://localhost:8080/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"`
+  - `curl -X POST http://localhost:18080/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"`
 
 ## How to test
 

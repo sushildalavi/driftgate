@@ -54,7 +54,7 @@ services:
     volumes:
       - ./config:/app/config:ro
     ports:
-      - "8080:8000"
+      - "18080:8000"
     depends_on:
       postgres:
         condition: service_healthy

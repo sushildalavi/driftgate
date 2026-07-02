@@ -26,7 +26,7 @@ docker compose config
 Trigger a one-off monitor run and check runtime metrics:
 
 ```bash
-curl -X POST http://localhost:8080/api/monitor/run-once \
+curl -X POST http://localhost:18080/api/monitor/run-once \
   -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
 curl http://localhost:8018/api/v1/metrics
 ```

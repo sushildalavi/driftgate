@@ -2,6 +2,8 @@ fastapi
 sqlalchemy
 psycopg2-binary
 pydantic
+langchain-core
+langgraph
 asyncpg
 httpx
 uvicorn

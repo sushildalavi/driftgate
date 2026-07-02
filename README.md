@@ -71,7 +71,7 @@ flowchart LR
 
 ```bash
 docker compose up -d --build
-curl -X POST http://localhost:8080/api/monitor/run-once \
+curl -X POST http://localhost:18080/api/monitor/run-once \
   -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
 ```
 

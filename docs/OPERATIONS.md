@@ -18,13 +18,13 @@ python scripts/apply_runtime_migrations.py
 
 ## Endpoints
 
-- Main monitor API (backend service): `http://localhost:8080`
+- Main monitor API (backend service): `http://localhost:18080`
 - Webhook gateway: `http://localhost:3020`
 - Runtime guard API (benchmark target): `http://localhost:8018`
 - Runtime track forwarded by gateway: `POST http://localhost:3020/webhooks/<source>`
 - Runtime track: `POST http://localhost:8018/track`
 - Runtime metrics: `GET http://localhost:8018/api/v1/metrics`
-- Scheduled backend docs: `http://localhost:8080/docs`
+- Scheduled backend docs: `http://localhost:18080/docs`
 - Angular dashboard: `http://localhost:5174`
 
 ## Common Pitfall

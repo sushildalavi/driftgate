@@ -30,8 +30,8 @@ simulate: runtime-up runtime-migrate
 
 demo:
 	docker compose up -d --build
-	until curl -sf http://localhost:8080/health >/dev/null; do sleep 2; done
-	curl -X POST http://localhost:8080/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: $${ADMIN_SECRET:-dev-secret}"
+	until curl -sf http://localhost:18080/health >/dev/null; do sleep 2; done
+	curl -X POST http://localhost:18080/api/monitor/run-once -H "X-SCHEMAPILOT-ADMIN-SECRET: $${ADMIN_SECRET:-dev-secret}"
 	curl http://localhost:8018/api/v1/metrics
 
 docker-config:

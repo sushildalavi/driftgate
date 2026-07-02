@@ -25,7 +25,7 @@ export interface OverviewBundle {
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private readonly monitorBaseUrl = 'http://localhost:8080';
+  private readonly monitorBaseUrl = 'http://localhost:18080';
   private readonly runtimeBaseUrl = 'http://localhost:8018';
 
   private readonly http = inject(HttpClient);
