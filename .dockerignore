@@ -1,0 +1,13 @@
+.git
+**/.git
+**/node_modules
+**/dist
+**/.angular
+**/.cache
+**/__pycache__
+**/*.pyc
+**/*.log
+frontend/dist
+frontend/node_modules
+gateway/node_modules
+backend/.pytest_cache

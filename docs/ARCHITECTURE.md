@@ -7,7 +7,7 @@ DriftGate has two backend paths:
 3. Webhook gateway (`gateway/`): verifies signatures and idempotency before forwarding accepted payloads to the runtime service.
 4. Event backend abstraction: publishes drift events to Kafka or Azure Service Bus when configured, with a no-op local fallback.
 5. Document store: payload snapshots, schema diff documents, validation failures, and replay artifacts go to a MongoDB/Cosmos-compatible store when enabled.
-6. Angular dashboard (`frontend/`): surfaces schema registry, drift diff review, webhook reliability, and document-store inspection.
+6. Angular product site and app shell (`frontend/`): public landing page, schema registry, drift diff review, webhook reliability, contract review, and document-store inspection.
 
 ## Runtime Guard Data Path
 

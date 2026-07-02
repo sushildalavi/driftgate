@@ -7,7 +7,7 @@ This repository currently contains three runtime services:
 - `backend/`: scheduled API monitor and changelog service
 - `gateway/`: Node.js/TypeScript webhook gateway with HMAC and idempotency checks
 - root `app/`: runtime contract guard, webhook outbox, and drift event pipeline
-- `frontend/`: Angular dashboard for registry, drift review, DLQ, and document-store browsing
+- `frontend/`: Angular product site and application console for registry, drift review, DLQ, and document-store browsing
 
 It has two paths:
 
@@ -44,7 +44,8 @@ flowchart LR
 
   DB[(PostgreSQL)]
   DOC[(MongoDB / Cosmos docs)]
-  FE[Angular dashboard]
+  LP[Public landing page]
+  FE[Angular app shell]
 
   A --> M1
   B --> M1
@@ -53,8 +54,18 @@ flowchart LR
   M1 --> M2 --> M3 --> DB
   M4 --> DB
   M4 --> DOC
-  FE --> Backend
+  LP --> FE --> Backend
 ```
+
+## Frontend routes
+
+- `/` public product landing page
+- `/app/overview` governance control center
+- `/app/registry` schema registry and ownership
+- `/app/diffs` schema drift viewer
+- `/app/reliability` webhook retries and DLQ replay
+- `/app/documents` payload and diff history
+- `/app/review` contract review workflow
 
 ## Local run
 

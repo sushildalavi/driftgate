@@ -15,7 +15,9 @@ docker compose up -d --build
 ```
 
 This brings up Postgres, the runtime guard, the webhook gateway, MongoDB (document
-store), and the Angular dashboard. Validate the compose file itself with:
+store), and the Angular product site + app console. The landing page is served at
+`http://localhost:4200/` and the application shell starts at `/app/overview`.
+Validate the compose file itself with:
 
 ```bash
 docker compose config
@@ -73,6 +75,12 @@ npm run lint
 npm test -- --watch=false --browsers=ChromeHeadless
 npm run build
 ```
+
+For a guided demo flow, open:
+
+- `/` for the public landing page
+- `/app/overview` for the control center
+- `/app/review` for the contract review workflow
 
 ## Makefile shortcuts
 
