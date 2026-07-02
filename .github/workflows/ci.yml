@@ -59,6 +59,20 @@ jobs:
 
   runtime-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: driftgate_test
+          POSTGRES_USER: schemapilot
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -74,6 +88,12 @@ jobs:
         run: python -m compileall app backend/app scripts
 
       - name: Run runtime tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
+          DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
+          ADMIN_SECRET: ci-secret
+          FRONTEND_ORIGINS: http://localhost:5174
+          REGISTRY_PATH: /tmp/apis.yaml
         run: python -m pytest tests -v
 
   gateway-tests:
@@ -92,7 +112,7 @@ jobs:
           cache-dependency-path: gateway/package-lock.json
 
       - name: Install
-        run: npm ci
+        run: npm install
 
       - name: Test
         run: npm test
