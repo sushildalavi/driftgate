@@ -18,6 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.runtime.document_store import DocumentStore
+from app.runtime.drift_event_dlq import list_event_dlq
 from app.runtime.metrics import (
     CONTRACT_REVIEW_GROUNDING_FAILURE_TOTAL,
     CONTRACT_REVIEW_INSUFFICIENT_EVIDENCE_TOTAL,
@@ -65,6 +66,7 @@ class ContractReviewEvidence(BaseModel):
     payload_snapshots: list[ReviewEvidenceItem] = Field(default_factory=list)
     validation_failures: list[ReviewEvidenceItem] = Field(default_factory=list)
     dlq_entries: list[ReviewEvidenceItem] = Field(default_factory=list)
+    drift_event_dlq_entries: list[ReviewEvidenceItem] = Field(default_factory=list)
     delivery_attempts: list[ReviewEvidenceItem] = Field(default_factory=list)
     subscriptions: list[dict[str, Any]] = Field(default_factory=list)
     drift_violations: list[ReviewEvidenceItem] = Field(default_factory=list)
@@ -79,6 +81,7 @@ class ContractReviewEvidence(BaseModel):
             + self.payload_snapshots
             + self.validation_failures
             + self.dlq_entries
+            + self.drift_event_dlq_entries
             + self.delivery_attempts
             + self.drift_violations
         ):
@@ -95,6 +98,10 @@ class ContractReviewOutcome(BaseModel):
     severity: ReviewSeverity
     summary: str = Field(min_length=1)
     consumer_impact: str = Field(min_length=1)
+    impacted_consumers: list[str] = Field(default_factory=list)
+    severity_explanation: str = Field(default="")
+    risk_summary: str = Field(default="")
+    rollout_action: str = Field(default="")
     evidence: list[str] = Field(default_factory=list)
     recommended_fixes: list[str] = Field(default_factory=list)
     migration_note: str = Field(min_length=1)
@@ -214,6 +221,63 @@ def _citation_lines(items: list[ReviewEvidenceItem]) -> list[str]:
     return [f"[{item.citation}] {item.summary}" for item in items]
 
 
+def _impacted_consumers(evidence: ContractReviewEvidence) -> list[str]:
+    consumers: list[str] = []
+    for subscription in evidence.subscriptions:
+        if not subscription.get("active", True):
+            continue
+        consumer_id = str(subscription.get("consumer_id", "")).strip()
+        target_url = str(subscription.get("target_url", "")).strip()
+        threshold = str(subscription.get("severity_threshold", "unknown")).strip()
+        if not consumer_id and not target_url:
+            continue
+        label = consumer_id or target_url
+        if threshold:
+            label = f"{label} (threshold={threshold})"
+        consumers.append(label)
+    return consumers
+
+
+def _severity_explanation(severity: ReviewSeverity, evidence: ContractReviewEvidence) -> str:
+    if severity is ReviewSeverity.BREAKING:
+        return (
+            "A breaking review means at least one grounded schema diff or drift violation removes a required field, "
+            "narrows an enum, or tightens a type in a way that can break existing consumers."
+        )
+    if severity is ReviewSeverity.RISKY:
+        return (
+            "A risky review means the collected evidence points to a compatibility change that may require a rollout "
+            "plan, version bump, or consumer communication before release."
+        )
+    if evidence.insufficient_evidence:
+        return "The review is conservative because the evidence bundle is sparse."
+    return "No grounded diff, validation failure, DLQ item, or delivery failure suggests consumer impact."
+
+
+def _risk_summary(severity: ReviewSeverity, evidence: ContractReviewEvidence, impacted_consumers: list[str]) -> str:
+    if severity is ReviewSeverity.BREAKING:
+        return (
+            f"{len(impacted_consumers) or len(evidence.subscriptions)} consumer(s) are likely affected and should not "
+            "be cut over until the contract is versioned or a compatibility shim is in place."
+        )
+    if severity is ReviewSeverity.RISKY:
+        return (
+            f"{len(impacted_consumers) or len(evidence.subscriptions)} consumer(s) may be exposed to a behavior change; "
+            "validate the rollout path and keep the previous shape available."
+        )
+    return "Current evidence does not show an immediate consumer break, but the review remains tied to the collected artifacts."
+
+
+def _rollout_action(severity: ReviewSeverity, insufficient_evidence: bool) -> str:
+    if insufficient_evidence:
+        return "Pause rollout until the review has enough citations to justify a decision."
+    if severity is ReviewSeverity.BREAKING:
+        return "Block rollout, notify impacted consumers, and ship a versioned compatibility path."
+    if severity is ReviewSeverity.RISKY:
+        return "Roll out behind a guardrail or staged deployment and monitor the evidence trail closely."
+    return "Proceed with rollout and keep the evidence bundle attached to the release record."
+
+
 def _build_migration_note(severity: ReviewSeverity, evidence: ContractReviewEvidence, consumer_impact: str) -> str:
     if severity is ReviewSeverity.BREAKING:
         return (
@@ -263,6 +327,12 @@ def _build_review_comment(
         "",
         f"### Consumer impact\n{consumer_impact}",
         "",
+        f"### Severity explanation\n{review.severity_explanation}",
+        "",
+        f"### Risk summary\n{review.risk_summary}",
+        "",
+        f"### Rollout action\n{review.rollout_action}",
+        "",
         "### Evidence",
     ]
     if review.evidence:
@@ -274,6 +344,9 @@ def _build_review_comment(
     if review.recommended_fixes:
         lines.extend(["", "### Recommended fixes"])
         lines.extend(f"- {item}" for item in review.recommended_fixes)
+    if review.impacted_consumers:
+        lines.extend(["", "### Impacted consumers"])
+        lines.extend(f"- {consumer}" for consumer in review.impacted_consumers)
     lines.extend(["", f"### Migration note\n{review.migration_note}"])
     return "\n".join(lines)
 
@@ -311,6 +384,10 @@ def _build_heuristic_review(
         severity=severity if not insufficient_evidence else ReviewSeverity.RISKY,
         summary=summary,
         consumer_impact=consumer_impact,
+        impacted_consumers=_impacted_consumers(evidence),
+        severity_explanation=_severity_explanation(severity, evidence),
+        risk_summary=_risk_summary(severity, evidence, _impacted_consumers(evidence)),
+        rollout_action=_rollout_action(severity, insufficient_evidence),
         evidence=evidence_items,
         recommended_fixes=[] if insufficient_evidence else _build_recommended_fixes(evidence),
         migration_note=_build_migration_note(severity, evidence, consumer_impact),
@@ -486,11 +563,270 @@ class OllamaReviewProvider:
             )
 
 
+class OpenAIReviewProvider:
+    provider_name = "openai"
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model_name: str,
+        base_url: str,
+        timeout_seconds: int,
+    ) -> None:
+        self.api_key = api_key
+        self.model_name = model_name
+        self.base_url = base_url.rstrip("/")
+        self.timeout_seconds = timeout_seconds
+        self._parser = PydanticOutputParser(pydantic_object=ContractReviewOutcome)
+        self._prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are DriftGate's contract review agent. Use only the supplied evidence. "
+                    "Return JSON only and never invent facts.",
+                ),
+                (
+                    "human",
+                    "Endpoint: {endpoint_name}\n"
+                    "Route: {http_method} {route_path}\n"
+                    "Diff summary:\n{evidence_summary}\n\n"
+                    "Consumer impact:\n{consumer_impact}\n\n"
+                    "Evidence JSON:\n{evidence_json}\n\n"
+                    "Validation failures:\n{validation_json}\n\n"
+                    "DLQ context:\n{dlq_json}\n\n"
+                    "{format_instructions}",
+                ),
+            ]
+        )
+
+    async def _call_model(
+        self,
+        evidence: ContractReviewEvidence,
+        evidence_summary: str,
+        consumer_impact: str,
+    ) -> ContractReviewOutcome:
+        prompt = self._prompt.format_messages(
+            endpoint_name=evidence.endpoint_name,
+            http_method=evidence.http_method,
+            route_path=evidence.route_path,
+            evidence_summary=evidence_summary,
+            consumer_impact=consumer_impact,
+            evidence_json=json.dumps(
+                [
+                    item.model_dump()
+                    for item in evidence.schema_diffs
+                    + evidence.payload_snapshots
+                    + evidence.validation_failures
+                    + evidence.dlq_entries
+                    + evidence.drift_event_dlq_entries
+                    + evidence.delivery_attempts
+                    + evidence.drift_violations
+                ],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            validation_json=json.dumps(
+                [item.model_dump() for item in evidence.validation_failures],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            dlq_json=json.dumps(
+                [item.model_dump() for item in evidence.dlq_entries + evidence.delivery_attempts],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            format_instructions=self._parser.get_format_instructions(),
+        )
+        payload = {
+            "model": self.model_name,
+            "messages": [
+                {"role": "system", "content": prompt[0].content},
+                {"role": "user", "content": prompt[1].content},
+            ],
+            "temperature": 0,
+            "response_format": {"type": "json_object"},
+        }
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+            res = await client.post(f"{self.base_url}/v1/chat/completions", json=payload, headers=headers)
+            res.raise_for_status()
+            data = res.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        parsed = self._parser.parse(content)
+        return ContractReviewOutcome.model_validate(parsed)
+
+    async def generate(
+        self,
+        *,
+        evidence: ContractReviewEvidence,
+        evidence_summary: str,
+        consumer_impact: str,
+    ) -> ContractReviewOutcome:
+        try:
+            return await self._call_model(evidence, evidence_summary, consumer_impact)
+        except Exception:
+            return _build_heuristic_review(
+                evidence=evidence,
+                evidence_summary=evidence_summary,
+                consumer_impact=consumer_impact,
+                insufficient_reason="Model generation failed; using evidence-only fallback review.",
+            )
+
+
+class GeminiReviewProvider:
+    provider_name = "gemini"
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model_name: str,
+        base_url: str,
+        timeout_seconds: int,
+    ) -> None:
+        self.api_key = api_key
+        self.model_name = model_name
+        self.base_url = base_url.rstrip("/")
+        self.timeout_seconds = timeout_seconds
+        self._parser = PydanticOutputParser(pydantic_object=ContractReviewOutcome)
+        self._prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are DriftGate's contract review agent. Use only the supplied evidence. "
+                    "Return JSON only and never invent facts.",
+                ),
+                (
+                    "human",
+                    "Endpoint: {endpoint_name}\n"
+                    "Route: {http_method} {route_path}\n"
+                    "Diff summary:\n{evidence_summary}\n\n"
+                    "Consumer impact:\n{consumer_impact}\n\n"
+                    "Evidence JSON:\n{evidence_json}\n\n"
+                    "Validation failures:\n{validation_json}\n\n"
+                    "DLQ context:\n{dlq_json}\n\n"
+                    "{format_instructions}",
+                ),
+            ]
+        )
+
+    async def _call_model(
+        self,
+        evidence: ContractReviewEvidence,
+        evidence_summary: str,
+        consumer_impact: str,
+    ) -> ContractReviewOutcome:
+        prompt = self._prompt.format_messages(
+            endpoint_name=evidence.endpoint_name,
+            http_method=evidence.http_method,
+            route_path=evidence.route_path,
+            evidence_summary=evidence_summary,
+            consumer_impact=consumer_impact,
+            evidence_json=json.dumps(
+                [
+                    item.model_dump()
+                    for item in evidence.schema_diffs
+                    + evidence.payload_snapshots
+                    + evidence.validation_failures
+                    + evidence.dlq_entries
+                    + evidence.drift_event_dlq_entries
+                    + evidence.delivery_attempts
+                    + evidence.drift_violations
+                ],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            validation_json=json.dumps(
+                [item.model_dump() for item in evidence.validation_failures],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            dlq_json=json.dumps(
+                [item.model_dump() for item in evidence.dlq_entries + evidence.delivery_attempts],
+                ensure_ascii=True,
+                indent=2,
+                default=str,
+            ),
+            format_instructions=self._parser.get_format_instructions(),
+        )
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": f"{prompt[0].content}\n\n{prompt[1].content}"}],
+                }
+            ],
+            "generationConfig": {"temperature": 0, "maxOutputTokens": 1024},
+        }
+        async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+            res = await client.post(
+                f"{self.base_url}/v1beta/models/{self.model_name}:generateContent",
+                params={"key": self.api_key},
+                json=payload,
+            )
+            res.raise_for_status()
+            data = res.json()
+        content = (
+            data.get("candidates", [{}])[0]
+            .get("content", {})
+            .get("parts", [{}])[0]
+            .get("text", "")
+        )
+        parsed = self._parser.parse(content)
+        return ContractReviewOutcome.model_validate(parsed)
+
+    async def generate(
+        self,
+        *,
+        evidence: ContractReviewEvidence,
+        evidence_summary: str,
+        consumer_impact: str,
+    ) -> ContractReviewOutcome:
+        try:
+            return await self._call_model(evidence, evidence_summary, consumer_impact)
+        except Exception:
+            return _build_heuristic_review(
+                evidence=evidence,
+                evidence_summary=evidence_summary,
+                consumer_impact=consumer_impact,
+                insufficient_reason="Model generation failed; using evidence-only fallback review.",
+            )
+
+
 def build_review_provider() -> ReviewProvider:
     provider = os.getenv("AI_PROVIDER", "disabled").strip().lower()
     if provider == "fake":
         return FakeReviewProvider()
-    if provider == "ollama":
+    if provider in {"", "disabled", "auto", "openai"} and os.getenv("OPENAI_API_KEY"):
+        api_key = os.getenv("OPENAI_API_KEY")
+        return OpenAIReviewProvider(
+            api_key=api_key,
+            model_name=os.getenv("AI_MODEL", "gpt-4.1-mini"),
+            base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com"),
+            timeout_seconds=int(os.getenv("AI_TIMEOUT_SECONDS", "20")),
+        )
+    if provider in {"", "disabled", "auto", "gemini"} and os.getenv("GEMINI_API_KEY"):
+        api_key = os.getenv("GEMINI_API_KEY")
+        return GeminiReviewProvider(
+            api_key=api_key,
+            model_name=os.getenv("AI_MODEL", "gemini-2.5-flash"),
+            base_url=os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com"),
+            timeout_seconds=int(os.getenv("AI_TIMEOUT_SECONDS", "20")),
+        )
+    if provider in {"ollama", "local"}:
+        return OllamaReviewProvider(
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+            model_name=os.getenv("AI_MODEL", "qwen2.5-coder:7b"),
+            fallback_model_name=os.getenv("AI_FALLBACK_MODEL", "llama3.1:8b") or None,
+            timeout_seconds=int(os.getenv("AI_TIMEOUT_SECONDS", "20")),
+        )
+    if os.getenv("OLLAMA_BASE_URL") and provider in {"", "disabled", "auto"}:
         return OllamaReviewProvider(
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             model_name=os.getenv("AI_MODEL", "qwen2.5-coder:7b"),
@@ -753,6 +1089,24 @@ async def collect_contract_evidence(
             )
         )
 
+    drift_event_rows = await list_event_dlq(db, limit=request.evidence_limit * 2)
+    drift_event_dlq_entries: list[ReviewEvidenceItem] = []
+    for index, item in enumerate(
+        [row for row in drift_event_rows if str(row.get("endpoint_id")) == request.endpoint_id],
+        start=1,
+    ):
+        drift_event_dlq_entries.append(
+            ReviewEvidenceItem(
+                citation=f"drift-event-dlq:{index}",
+                kind="drift_event_dlq",
+                summary=(
+                    f"publisher={item.get('publisher_name', 'unknown')} attempts={item.get('attempt_count', 0)} "
+                    f"reason={item.get('failure_reason', 'unknown')}"
+                ),
+                details=dict(item),
+            )
+        )
+
     attempts_rows = await db.execute(
         text(
             """
@@ -794,12 +1148,21 @@ async def collect_contract_evidence(
         notes.append("no schema diff documents or drift violations were found")
     if not payload_snapshots:
         notes.append("no payload snapshots were stored for this endpoint")
+    if drift_event_dlq_entries:
+        notes.append(f"{len(drift_event_dlq_entries)} drift-event DLQ item(s) exist for this endpoint")
     if reviews:
         notes.append(f"{len(reviews)} prior contract review result(s) already exist")
     if replay_artifacts:
         notes.append(f"{len(replay_artifacts)} replay artifact(s) exist for this endpoint")
 
-    insufficient = not (schema_diffs or drift_violations or payload_snapshots or validation_failures or dlq_entries)
+    insufficient = not (
+        schema_diffs
+        or drift_violations
+        or payload_snapshots
+        or validation_failures
+        or dlq_entries
+        or drift_event_dlq_entries
+    )
     if insufficient:
         notes.append("available evidence is too sparse for a strong review")
 
@@ -847,6 +1210,7 @@ async def collect_contract_evidence(
             for index, item in enumerate(validation_failures, start=1)
         ],
         dlq_entries=dlq_entries,
+        drift_event_dlq_entries=drift_event_dlq_entries,
         delivery_attempts=delivery_attempts,
         subscriptions=subscriptions,
         drift_violations=drift_violations,
@@ -1032,7 +1396,10 @@ def evaluate_contract_review_cases(
     valid_outputs = 0
     correct_severity = 0
     evidence_coverage = 0
+    unsupported_claims = 0
+    migration_plans = 0
     insufficient_count = 0
+    total_confidence = 0.0
     total_latency = 0.0
     for case in cases:
         evidence = ContractReviewEvidence.model_validate(case["evidence"])
@@ -1059,6 +1426,14 @@ def evaluate_contract_review_cases(
             correct_severity += 1
         if validated.evidence:
             evidence_coverage += 1
+        if any(
+            not any(citation in evidence_line for citation in evidence.citations)
+            for evidence_line in validated.evidence
+        ):
+            unsupported_claims += 1
+        if validated.migration_note.strip():
+            migration_plans += 1
+        total_confidence += validated.confidence
         if validated.insufficient_evidence:
             insufficient_count += 1
     total = len(cases) or 1
@@ -1067,6 +1442,9 @@ def evaluate_contract_review_cases(
         "schema_valid_output_rate": valid_outputs / total,
         "correct_severity_rate": correct_severity / total,
         "evidence_coverage_rate": evidence_coverage / total,
+        "unsupported_claim_rate": unsupported_claims / total,
+        "migration_plan_rate": migration_plans / total,
         "average_generation_latency_ms": (total_latency / total) * 1000.0,
+        "average_confidence": total_confidence / total if cases else 0.0,
         "insufficient_evidence_rate": insufficient_count / total,
     }

@@ -281,9 +281,17 @@ async def get_runtime_metrics(db: AsyncSession) -> dict:
         )
     )
     severity_counts = {row[0]: row[1] for row in viol_res.fetchall()}
+    drift_dlq_res = await db.execute(text("SELECT COUNT(*) FROM drift_event_dlq;"))
+    webhook_dlq_res = await db.execute(text("SELECT COUNT(*) FROM webhook_delivery_dlq;"))
+    outbox_pending_res = await db.execute(
+        text("SELECT COUNT(*) FROM webhook_outbox WHERE status = 'PENDING';")
+    )
 
     return {
         "endpoint_count": ep_count,
         "snapshot_count": ss_count,
         "severity_counts": severity_counts,
+        "webhook_delivery_dlq_count": webhook_dlq_res.scalar_one(),
+        "webhook_outbox_pending_count": outbox_pending_res.scalar_one(),
+        "drift_event_dlq_count": drift_dlq_res.scalar_one(),
     }
