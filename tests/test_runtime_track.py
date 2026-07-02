@@ -59,6 +59,7 @@ async def session_maker(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]
             text(
                 """
                 TRUNCATE TABLE
+                  drift_event_dlq,
                   webhook_delivery_dlq,
                   webhook_delivery_attempts,
                   consumer_subscriptions,

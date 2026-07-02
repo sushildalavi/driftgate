@@ -169,6 +169,8 @@ async def test_breaking_review() -> None:
     assert review.decision is ReviewDecision.BLOCK
     assert review.severity is ReviewSeverity.BREAKING
     assert review.evidence == ["[schema-diff:1] removed required field `price`"]
+    assert review.rollout_action.startswith("Block rollout")
+    assert "breaking review" in review.severity_explanation.lower()
 
 
 @pytest.mark.asyncio
