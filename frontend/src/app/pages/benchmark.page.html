@@ -1,0 +1,59 @@
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <p class="meta">Benchmark explorer</p>
+        <h3>Runtime guard load profile</h3>
+      </div>
+      <div class="tag-row">
+        <a class="tag" routerLink="/app/overview">Runtime dashboard</a>
+        <a class="tag" routerLink="/app/reliability">DLQ replay</a>
+      </div>
+    </div>
+
+    <p class="section-copy">
+      This screen is a navigation-level explorer for the measured k6 artifacts. It is intentionally labeled as a profile view,
+      not as a claim of production load.
+    </p>
+  </section>
+
+  <section class="grid cols-2">
+    @for (tier of tiers; track tier.requests) {
+      <article class="card">
+        <div class="card-header">
+          <div>
+            <p class="meta">{{ tier.label }}</p>
+            <h3>{{ tier.requests }} requests</h3>
+          </div>
+          <span class="tag">{{ tier.vus }} VUs</span>
+        </div>
+        <p>{{ tier.note }}</p>
+        <div class="stack">
+          <div class="mini-card">
+            <span class="meta">Target throughput</span>
+            <strong>k6 artifact</strong>
+          </div>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h3>Measured signals</h3>
+        <p>Every benchmark artifact is expected to preserve these values.</p>
+      </div>
+      <span class="tag">raw JSON first</span>
+    </div>
+
+    <div class="grid cols-2">
+      @for (signal of signals; track signal) {
+        <div class="mini-card">
+          <strong>{{ signal }}</strong>
+          <p class="muted">Captured from raw k6 output and rendered into Markdown after the run.</p>
+        </div>
+      }
+    </div>
+  </section>
+</div>
