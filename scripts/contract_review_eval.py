@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
+import sys
 from pathlib import Path
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from app.runtime.contract_review import (
     ContractReviewEvidence,
@@ -38,6 +44,16 @@ def _base_evidence(**overrides: Any) -> ContractReviewEvidence:
 
 
 def default_cases() -> list[dict[str, Any]]:
+    required_field = _base_evidence(
+        schema_diffs=[
+            ReviewEvidenceItem(
+                citation="schema-diff:1",
+                kind="schema_diff",
+                summary="added required field `currency`",
+                details={"change_type": "added_required_field", "path": "currency"},
+            )
+        ]
+    ).model_dump()
     compatible = _base_evidence(
         payload_snapshots=[
             ReviewEvidenceItem(
@@ -48,6 +64,16 @@ def default_cases() -> list[dict[str, Any]]:
             )
         ]
     ).model_dump()
+    removed_optional = _base_evidence(
+        schema_diffs=[
+            ReviewEvidenceItem(
+                citation="schema-diff:1",
+                kind="schema_diff",
+                summary="removed optional field `nickname`",
+                details={"change_type": "removed_optional_field", "path": "nickname"},
+            )
+        ]
+    ).model_dump()
     risky = _base_evidence(
         schema_diffs=[
             ReviewEvidenceItem(
@@ -55,6 +81,26 @@ def default_cases() -> list[dict[str, Any]]:
                 kind="schema_diff",
                 summary="nullable change on `score`",
                 details={"change_type": "nullable_change", "path": "score"},
+            )
+        ]
+    ).model_dump()
+    malformed_payload = _base_evidence(
+        validation_failures=[
+            ReviewEvidenceItem(
+                citation="validation:1",
+                kind="validation_error",
+                summary="payload rejected because `price` is missing",
+                details={"path": "/track", "error_count": 1},
+            )
+        ]
+    ).model_dump()
+    webhook_failure = _base_evidence(
+        dlq_entries=[
+            ReviewEvidenceItem(
+                citation="dlq:1",
+                kind="dlq_entry",
+                summary="consumer=checkout attempts=5 reason=timeout target=http://checkout/webhook",
+                details={"attempt_count": 5, "failure_reason": "timeout"},
             )
         ]
     ).model_dump()
@@ -78,7 +124,56 @@ def default_cases() -> list[dict[str, Any]]:
             )
         ]
     ).model_dump()
-    type_change = _base_evidence(
+    sparse = _base_evidence(insufficient_evidence=True, notes=["evidence sparse"]).model_dump()
+    conflicting = _base_evidence(
+        schema_diffs=[
+            ReviewEvidenceItem(
+                citation="schema-diff:1",
+                kind="schema_diff",
+                summary="enum contraction on `status`",
+                details={"change_type": "enum_contraction", "path": "status"},
+            )
+        ],
+        payload_snapshots=[
+            ReviewEvidenceItem(
+                citation="snapshot:1",
+                kind="payload_snapshot",
+                summary="snapshot still shows the removed enum value",
+                details={"classification": "RISKY"},
+            )
+        ],
+    ).model_dump()
+    drift_dlq = _base_evidence(
+        drift_violations=[
+            ReviewEvidenceItem(
+                citation="drift-violation:1",
+                kind="drift_violation",
+                summary="severity=BREAKING fingerprint=abc123 path=price",
+                details={"severity": "BREAKING", "path": "price"},
+            )
+        ]
+    ).model_dump()
+    additive_safe = _base_evidence(
+        payload_snapshots=[
+            ReviewEvidenceItem(
+                citation="snapshot:1",
+                kind="payload_snapshot",
+                summary="added optional field `promo_code`",
+                details={"classification": "SAFE"},
+            )
+        ]
+    ).model_dump()
+    additive_risky = _base_evidence(
+        schema_diffs=[
+            ReviewEvidenceItem(
+                citation="schema-diff:1",
+                kind="schema_diff",
+                summary="added nested object `billing_address`",
+                details={"change_type": "nested_shape_change", "path": "billing_address"},
+            )
+        ]
+    ).model_dump()
+    subscription_impact = _base_evidence(
         schema_diffs=[
             ReviewEvidenceItem(
                 citation="schema-diff:1",
@@ -86,15 +181,40 @@ def default_cases() -> list[dict[str, Any]]:
                 summary="type changed from integer to string for `quantity`",
                 details={"change_type": "type_changed", "path": "quantity"},
             )
-        ]
+        ],
+        subscriptions=[
+            {
+                "id": "sub-1",
+                "consumer_id": "billing-service",
+                "endpoint_id": "endpoint-1",
+                "target_url": "http://billing/webhook",
+                "severity_threshold": "RISKY",
+                "schema_version": 3,
+                "active": True,
+            }
+        ],
     ).model_dump()
     insufficient = _base_evidence(insufficient_evidence=True, notes=["too sparse"]).model_dump()
     return [
+        {
+            "name": "added_required_field",
+            "expected_severity": "breaking",
+            "evidence": required_field,
+            "evidence_summary": "added required field currency",
+            "consumer_impact": "1 active consumer",
+        },
         {
             "name": "compatible",
             "expected_severity": "compatible",
             "evidence": compatible,
             "evidence_summary": "safe payload snapshot",
+            "consumer_impact": "No active consumers",
+        },
+        {
+            "name": "removed_optional_field",
+            "expected_severity": "compatible",
+            "evidence": removed_optional,
+            "evidence_summary": "removed optional field nickname",
             "consumer_impact": "No active consumers",
         },
         {
@@ -105,11 +225,46 @@ def default_cases() -> list[dict[str, Any]]:
             "consumer_impact": "1 active consumer",
         },
         {
+            "name": "malformed_payload",
+            "expected_severity": "risky",
+            "evidence": malformed_payload,
+            "evidence_summary": "payload validation failure",
+            "consumer_impact": "1 active consumer",
+        },
+        {
+            "name": "webhook_delivery_failure",
+            "expected_severity": "risky",
+            "evidence": webhook_failure,
+            "evidence_summary": "delivery attempts exhausted",
+            "consumer_impact": "1 active consumer",
+        },
+        {
             "name": "breaking_field_removal",
             "expected_severity": "breaking",
             "evidence": breaking,
             "evidence_summary": "removed required field",
             "consumer_impact": "2 active consumers",
+        },
+        {
+            "name": "sparse_evidence",
+            "expected_severity": "risky",
+            "evidence": sparse,
+            "evidence_summary": "evidence sparse",
+            "consumer_impact": "No consumers",
+        },
+        {
+            "name": "conflicting_evidence",
+            "expected_severity": "breaking",
+            "evidence": conflicting,
+            "evidence_summary": "conflicting evidence",
+            "consumer_impact": "1 active consumer",
+        },
+        {
+            "name": "dlq_backed_issue",
+            "expected_severity": "breaking",
+            "evidence": drift_dlq,
+            "evidence_summary": "drift violation backed by DLQ",
+            "consumer_impact": "1 active consumer",
         },
         {
             "name": "enum_removal",
@@ -119,9 +274,23 @@ def default_cases() -> list[dict[str, Any]]:
             "consumer_impact": "1 active consumer",
         },
         {
-            "name": "type_change",
+            "name": "safe_additive_change",
+            "expected_severity": "compatible",
+            "evidence": additive_safe,
+            "evidence_summary": "optional field added",
+            "consumer_impact": "No active consumers",
+        },
+        {
+            "name": "risky_additive_change",
+            "expected_severity": "risky",
+            "evidence": additive_risky,
+            "evidence_summary": "nested object added",
+            "consumer_impact": "1 active consumer",
+        },
+        {
+            "name": "subscription_impact",
             "expected_severity": "breaking",
-            "evidence": type_change,
+            "evidence": subscription_impact,
             "evidence_summary": "type change",
             "consumer_impact": "1 active consumer",
         },
@@ -146,6 +315,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--cases", type=Path, help="Optional JSON file of evaluation cases.")
     parser.add_argument("--provider", choices=["disabled", "fake"], default="disabled")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON output.")
+    parser.add_argument("--output-dir", type=Path, help="Optional directory for JSON and Markdown artifacts.")
     return parser
 
 
@@ -153,6 +323,27 @@ def main() -> None:
     args = build_parser().parse_args()
     provider = DisabledReviewProvider() if args.provider == "disabled" else FakeReviewProvider()
     metrics = evaluate_contract_review_cases(load_cases(args.cases), provider=provider)
+    if args.output_dir is not None:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        json_path = args.output_dir / f"contract_review_eval_{stamp}.json"
+        md_path = args.output_dir / f"contract_review_eval_{stamp}.md"
+        json_path.write_text(json.dumps(metrics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        md_path.write_text(
+            "\n".join(
+                [
+                    "# DriftGate Contract Review Evaluation",
+                    "",
+                    "| metric | value |",
+                    "| --- | --- |",
+                    *[f"| {key} | {value} |" for key, value in metrics.items()],
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"wrote {json_path}")
+        print(f"wrote {md_path}")
     if args.json:
         print(json.dumps(metrics, indent=2, sort_keys=True))
     else:
