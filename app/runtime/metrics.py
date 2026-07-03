@@ -27,9 +27,6 @@ COMPATIBILITY_CLASSIFICATION_TOTAL = Counter(
 WEBHOOK_DELIVERY_FAILURES_TOTAL = Counter(
     "webhook_delivery_failures_total", "Webhook delivery failures"
 )
-KAFKA_PUBLISH_FAILURES_TOTAL = Counter(
-    "kafka_publish_failures_total", "Kafka publish failures"
-)
 DRIFT_EVENT_PUBLISH_FAILURES_TOTAL = Counter(
     "drift_event_publish_failures_total", "Failed drift-event publications"
 )

@@ -35,7 +35,7 @@ export class LandingPage {
     },
     {
       title: 'Governance must stay local-first',
-      description: 'Run the stack in Docker while keeping Azure-compatible delivery and MongoDB history available locally.',
+      description: 'Run the stack in Docker while keeping Azure Service Bus-compatible delivery and MongoDB history available locally.',
     },
   ];
 
@@ -46,7 +46,7 @@ export class LandingPage {
     { title: 'PostgreSQL registry + outbox', detail: 'Stores contracts, versions, subscriptions, and delivery state.' },
     { title: 'MongoDB document history', detail: 'Persists raw payloads, diffs, validation errors, and review artifacts.' },
     { title: 'LangGraph review flow', detail: 'Grounded review produces migration notes and delivery decisions.' },
-    { title: 'Azure Service Bus adapter', detail: 'Delivers drift events through an Azure-compatible sender abstraction.' },
+    { title: 'Azure Service Bus adapter', detail: 'Delivers drift events through an Azure Service Bus-compatible sender abstraction.' },
     { title: 'Prometheus / Grafana + k6', detail: 'Surfaces metrics and benchmark evidence for operator verification.' },
   ];
 

@@ -65,7 +65,6 @@ docker compose up -d --build
 Useful environment defaults:
 
 - `EVENT_BACKEND=noop` for local development
-- `EVENT_BACKEND=kafka` when a Kafka producer is injected
 - `EVENT_BACKEND=azure_service_bus` when an Azure Service Bus sender is injected
 - `DOCUMENT_STORE_BACKEND=memory` for tests and minimal local mode
 - `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB

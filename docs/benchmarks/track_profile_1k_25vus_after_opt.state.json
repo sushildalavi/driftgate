@@ -1,9 +1,0 @@
-{
-  "drift_event_dlq_count": 0,
-  "endpoint_count": 1,
-  "schema_version_count": 8,
-  "snapshot_count": 0,
-  "webhook_delivery_attempts_count": 0,
-  "webhook_delivery_dlq_count": 0,
-  "webhook_outbox_pending_count": 0
-}

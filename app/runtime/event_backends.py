@@ -38,19 +38,6 @@ class NoopEventBackend:
 
 
 @dataclass(slots=True)
-class KafkaEventBackend:
-    producer: Any
-    topic: str = "drift.detected"
-
-    async def publish_drift_detected(self, event: DriftEvent) -> None:
-        sender = getattr(self.producer, "send_and_wait", None)
-        if not callable(sender):
-            raise TypeError("Kafka producer must expose async send_and_wait(topic, payload)")
-        payload = json.dumps(_event_payload(event), separators=(",", ":")).encode("utf-8")
-        await sender(self.topic, payload)
-
-
-@dataclass(slots=True)
 class AzureServiceBusEventBackend:
     sender: Any
     queue_name: str = "drift-detected"
@@ -80,16 +67,9 @@ def _configured_backend_name() -> str:
 
 def build_event_backend(
     *,
-    kafka_producer: Any | None = None,
     service_bus_sender: Any | None = None,
 ) -> DriftEventBackend:
     backend = _configured_backend_name()
-    if backend == "kafka":
-        if kafka_producer is not None:
-            return KafkaEventBackend(kafka_producer)
-        raise RuntimeError(
-            "EVENT_BACKEND=kafka requires a kafka_producer or an explicit noop configuration"
-        )
     if backend == "azure_service_bus":
         if service_bus_sender is not None:
             return AzureServiceBusEventBackend(service_bus_sender)

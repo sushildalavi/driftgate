@@ -9,6 +9,6 @@
     {"type": "timeseries", "title": "Advisory Lock Wait", "targets": [{"expr": "histogram_quantile(0.95, sum(rate(advisory_lock_wait_seconds_bucket[5m])) by (le))"}], "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}},
     {"type": "timeseries", "title": "Webhook Failure Rate", "targets": [{"expr": "rate(webhook_delivery_failures_total[5m])"}], "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}},
     {"type": "stat", "title": "DLQ Size", "targets": [{"expr": "dlq_size"}], "gridPos": {"h": 8, "w": 6, "x": 12, "y": 16}},
-    {"type": "timeseries", "title": "Kafka Publish Failures", "targets": [{"expr": "rate(kafka_publish_failures_total[5m])"}], "gridPos": {"h": 8, "w": 6, "x": 18, "y": 16}}
+    {"type": "timeseries", "title": "Drift Event Publish Failures", "targets": [{"expr": "rate(drift_event_publish_failures_total[5m])"}], "gridPos": {"h": 8, "w": 6, "x": 18, "y": 16}}
   ]
 }

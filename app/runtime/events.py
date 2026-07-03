@@ -5,13 +5,12 @@ from typing import Any
 
 from app.runtime.event_backends import (
     DriftEventBackend,
-    KafkaEventBackend,
     NoopEventBackend,
     AzureServiceBusEventBackend,
     build_event_backend,
 )
 from app.runtime.drift_event_dlq import record_event_failure
-from app.runtime.metrics import DRIFT_EVENT_PUBLISH_FAILURES_TOTAL, KAFKA_PUBLISH_FAILURES_TOTAL
+from app.runtime.metrics import DRIFT_EVENT_PUBLISH_FAILURES_TOTAL
 from app.runtime.models import DriftEvent
 
 logger = logging.getLogger(__name__)
@@ -47,8 +46,6 @@ def publish_fire_and_forget(
             await publish_with_retry(publisher, event)
         except Exception:
             DRIFT_EVENT_PUBLISH_FAILURES_TOTAL.inc()
-            if isinstance(publisher, KafkaEventBackend):
-                KAFKA_PUBLISH_FAILURES_TOTAL.inc()
             await record_event_failure(
                 event,
                 failure_reason=f"publish failed via {publisher.__class__.__name__}",
@@ -70,7 +67,6 @@ __all__ = [
     "EventPublisher",
     "AzureServiceBusEventBackend",
     "DriftEventBackend",
-    "KafkaEventBackend",
     "NoopEventBackend",
     "build_default_publisher",
     "publish_fire_and_forget",
