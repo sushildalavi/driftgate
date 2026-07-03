@@ -311,7 +311,7 @@ def load_cases(path: Path | None) -> list[dict[str, Any]]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Evaluate DriftGate contract-review cases.")
+    parser = argparse.ArgumentParser(description="Evaluate DRIFTGATE contract-review cases.")
     parser.add_argument("--cases", type=Path, help="Optional JSON file of evaluation cases.")
     parser.add_argument("--provider", choices=["disabled", "fake"], default="disabled")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON output.")
@@ -332,7 +332,7 @@ def main() -> None:
         md_path.write_text(
             "\n".join(
                 [
-                    "# DriftGate Contract Review Evaluation",
+                    "# DRIFTGATE Contract Review Evaluation",
                     "",
                     "| metric | value |",
                     "| --- | --- |",
@@ -347,7 +347,7 @@ def main() -> None:
     if args.json:
         print(json.dumps(metrics, indent=2, sort_keys=True))
     else:
-        print("DriftGate contract-review evaluation")
+        print("DRIFTGATE contract-review evaluation")
         for key, value in metrics.items():
             print(f"{key}: {value}")
 

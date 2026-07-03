@@ -185,7 +185,7 @@ def build_review(old_payload: Any, new_payload: Any) -> dict[str, Any]:
     non_breaking_lines = [f"- {item}" for item in diff["non_breaking_changes"]] or ["- None"]
     pr_comment = "\n".join(
         [
-            "## DriftGate Contract Review",
+            "## DRIFTGATE Contract Review",
             f"- CI decision: {ci_decision}",
             f"- Risk level: {risk_level}",
             "",
@@ -222,7 +222,7 @@ def build_review(old_payload: Any, new_payload: Any) -> dict[str, Any]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the local DriftGate contract review agent.")
+    parser = argparse.ArgumentParser(description="Run the local DRIFTGATE contract review agent.")
     parser.add_argument("--old", required=True)
     parser.add_argument("--new", required=True)
     parser.add_argument("--json", action="store_true")

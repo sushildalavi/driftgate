@@ -318,7 +318,7 @@ def _build_review_comment(
     consumer_impact: str,
 ) -> str:
     lines = [
-        "## DriftGate Contract Review",
+        "## DRIFTGATE Contract Review",
         f"- Decision: `{review.decision.value}`",
         f"- Severity: `{review.severity.value}`",
         f"- Confidence: `{review.confidence:.2f}`",
@@ -476,7 +476,7 @@ class OllamaReviewProvider:
             [
                 (
                     "system",
-                    "You are DriftGate's contract review agent. Use only the supplied evidence. "
+                    "You are DRIFTGATE's contract review agent. Use only the supplied evidence. "
                     "Return JSON only and never invent facts.",
                 ),
                 (
@@ -583,7 +583,7 @@ class OpenAIReviewProvider:
             [
                 (
                     "system",
-                    "You are DriftGate's contract review agent. Use only the supplied evidence. "
+                    "You are DRIFTGATE's contract review agent. Use only the supplied evidence. "
                     "Return JSON only and never invent facts.",
                 ),
                 (
@@ -697,7 +697,7 @@ class GeminiReviewProvider:
             [
                 (
                     "system",
-                    "You are DriftGate's contract review agent. Use only the supplied evidence. "
+                    "You are DRIFTGATE's contract review agent. Use only the supplied evidence. "
                     "Return JSON only and never invent facts.",
                 ),
                 (

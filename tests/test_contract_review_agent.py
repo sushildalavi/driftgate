@@ -31,5 +31,5 @@ def test_generated_pr_comment_includes_evidence():
         _load_json(fixture_dir / "openapi_old.json"),
         _load_json(fixture_dir / "openapi_new.json"),
     )
-    assert "DriftGate Contract Review" in review["pr_comment_markdown"]
+    assert "DRIFTGATE Contract Review" in review["pr_comment_markdown"]
     assert "Event.payload type object -> string" in review["pr_comment_markdown"]
