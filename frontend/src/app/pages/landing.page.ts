@@ -35,30 +35,34 @@ export class LandingPage {
     },
     {
       title: 'Governance must stay local-first',
-      description: 'Run the stack in Docker and keep Azure Service Bus and Cosmos compatibility optional.',
+      description: 'Run the stack in Docker while keeping Azure-compatible delivery and MongoDB history available locally.',
     },
   ];
 
   readonly workflow = [
-    { title: 'Webhook Gateway', detail: 'HMAC verification, idempotency checks, and normalized capture.' },
-    { title: 'Runtime Validation', detail: 'FastAPI runtime records snapshots, diffs, DLQ, and replay artifacts.' },
-    { title: 'PostgreSQL Metadata', detail: 'Registry, versions, subscriptions, and delivery history.' },
-    { title: 'MongoDB Document Store', detail: 'Payload, diff, and review evidence with Cosmos compatibility.' },
-    { title: 'Angular Review Console', detail: 'Operational view for schema risk and contract review.' },
-    { title: 'DLQ / Replay', detail: 'Recover failed deliveries with a clear audit trail.' },
+    { title: 'Angular 20 UI', detail: 'Operator console for registry, review, observability, and benchmark evidence.' },
+    { title: 'Node.js/Fastify gateway', detail: 'HMAC verification, idempotency checks, and normalized webhook capture.' },
+    { title: 'FastAPI runtime guard', detail: 'Tracks live payloads, computes drift, and writes runtime evidence.' },
+    { title: 'PostgreSQL registry + outbox', detail: 'Stores contracts, versions, subscriptions, and delivery state.' },
+    { title: 'MongoDB document history', detail: 'Persists raw payloads, diffs, validation errors, and review artifacts.' },
+    { title: 'LangGraph review flow', detail: 'Grounded review produces migration notes and delivery decisions.' },
+    { title: 'Azure Service Bus adapter', detail: 'Delivers drift events through an Azure-compatible sender abstraction.' },
+    { title: 'Prometheus / Grafana + k6', detail: 'Surfaces metrics and benchmark evidence for operator verification.' },
   ];
 
   readonly featureCards = [
+    'Angular 20 UI',
+    'Node.js/Fastify gateway',
     'HMAC webhook verification',
     'Idempotency keys',
     'Schema drift detection',
     'Severity classification',
-    'Payload and diff history',
+    'PostgreSQL registry + outbox',
+    'MongoDB payload history',
+    'LangGraph review',
     'DLQ replay',
-    'Contract review',
-    'Benchmark explorer',
-    'Observability surface',
-    'Azure-compatible event backend',
+    'Prometheus/Grafana metrics',
+    'k6 benchmark explorer',
   ];
 
   readonly demoCards = [
@@ -106,37 +110,49 @@ export class LandingPage {
       detail: 'HMAC ingress, transactional outbox, webhook DLQ, and drift-event DLQ are implemented separately.',
     },
     {
-      title: 'Azure compatibility',
-      value: 'Ready',
-      detail: 'Azure Service Bus and Cosmos-style adapters are configurable without claiming deployment.',
+      title: 'MongoDB history',
+      value: 'Live',
+      detail: 'Raw payload captures, validation failures, and review evidence are persisted in MongoDB.',
     },
     {
-      title: 'Load validation',
-      value: 'Documented',
-      detail: 'k6 scripts and reproducible benchmark exports are generated from raw run output.',
+      title: 'Metrics and load',
+      value: 'Live',
+      detail: 'Prometheus, Grafana, and k6 artifacts provide operational telemetry and benchmark proof.',
     },
   ];
 
   readonly architectureNodes = [
     {
-      title: 'Gateway ingress',
+      title: 'Angular 20 UI',
+      detail: 'Operator workspace for registry, diffs, review, observability, and benchmark evidence.',
+    },
+    {
+      title: 'Node.js/Fastify webhook gateway',
       detail: 'HMAC verification, idempotency handling, and normalized event forwarding.',
     },
     {
-      title: 'Runtime API',
-      detail: 'FastAPI contract tracking, drift capture, contract review, and replay orchestration.',
+      title: 'FastAPI runtime guard',
+      detail: 'Tracks live payloads, computes drift, and orchestrates review-ready evidence.',
     },
     {
-      title: 'Metadata store',
-      detail: 'PostgreSQL stores endpoints, snapshots, delivery attempts, subscriptions, and DLQs.',
+      title: 'PostgreSQL contract registry + outbox',
+      detail: 'Stores endpoints, versions, subscriptions, and reliable delivery state.',
     },
     {
-      title: 'Document store',
-      detail: 'MongoDB / Cosmos-compatible evidence store for payload snapshots and review artifacts.',
+      title: 'MongoDB raw payload / document history',
+      detail: 'Stores raw payload documents, validation errors, diffs, and review artifacts.',
     },
     {
-      title: 'Angular console',
-      detail: 'Enterprise-style operator UI for governance, reliability, and replay workflows.',
+      title: 'LangGraph review workflow',
+      detail: 'Produces grounded contract decisions and migration notes from evidence.',
+    },
+    {
+      title: 'Azure Service Bus-compatible delivery adapter',
+      detail: 'Abstracts drift-event delivery without forcing a cloud dependency.',
+    },
+    {
+      title: 'Prometheus / Grafana + k6',
+      detail: 'Surfaces metrics, dashboards, and benchmark evidence in one loop.',
     },
   ];
 
