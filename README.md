@@ -104,7 +104,7 @@ Runtime event delivery is environment driven:
 - `DOCUMENT_STORE_BACKEND=memory` for tests and minimal local mode
 - `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB or Cosmos-compatible deployments
 
-The code is structured for Azure-compatible deployment, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-compatible" does and doesn't mean here.
+The code is structured for Azure-compatible adapters, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-compatible" does and doesn't mean here.
 
 ## Documentation
 

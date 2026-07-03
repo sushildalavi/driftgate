@@ -4,7 +4,7 @@ This document is meant to answer one question: what is actually implemented in D
 
 ## Project Summary
 
-DriftGate is a local-first API reliability and contract-governance platform. It combines scheduled contract monitoring, runtime payload validation, webhook ingress/retry handling, transactional outbox delivery, webhook DLQ replay, drift-event DLQ replay, and an Angular control room for review and visibility.
+DriftGate is a local-first API reliability and contract-governance platform. It combines scheduled contract monitoring, runtime payload validation, HMAC-verified webhook ingress/retry handling, transactional outbox delivery, webhook DLQ replay, drift-event DLQ replay, and an Angular control room for review and visibility.
 
 ## Implemented vs Not Implemented
 
@@ -93,6 +93,7 @@ These are intentionally left as placeholders so they can be filled with real cap
 
 ## Resume-Ready Summary
 
-- Built a local-first API governance platform with scheduled schema monitoring, runtime validation, webhook reliability, outbox delivery, and replayable DLQs.
-- Added evidence-backed contract review grounded in schema diffs, payload snapshots, validation failures, subscriptions, and DLQ history.
-- Added reproducible benchmark tooling and observability artifacts so performance and reliability claims are traceable to repo evidence.
+- Built a local-first API governance platform with HMAC-verified webhook ingress, runtime drift detection, transactional outbox delivery, and replayable webhook and drift-event DLQs.
+- Tuned the runtime guard with a measured 100K-request local benchmark at 42.22 ms p95 after removing registry-write overhead and unnecessary snapshot work from the hot path.
+- Added evidence-backed contract review and reproducible benchmark tooling so performance and reliability claims are traceable to repo artifacts.
+- Kept Azure support truthful: the repo exposes Azure-compatible adapters and Cosmos-style document-store wiring, but it does not claim a live Azure deployment.
