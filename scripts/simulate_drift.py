@@ -20,7 +20,7 @@ CONCURRENCY = int(os.getenv("SIM_CONCURRENCY", "200"))
 OUTPUT_PATH = Path(
     os.getenv(
         "SIM_OUTPUT_PATH",
-        "docs/benchmarks/schema_pilot_simulation_5000.json",
+        "docs/benchmarks/driftgate_simulation_5000.json",
     )
 )
 
@@ -82,7 +82,7 @@ async def run_simulation() -> SimulationResult:
 
 async def main() -> None:
     start = time.perf_counter()
-    dsn = os.getenv("DATABASE_URL_SYNC", "postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime")
+    dsn = os.getenv("DATABASE_URL_SYNC", "postgresql://driftgate:dev@localhost:55433/driftgate_runtime")
     with psycopg2.connect(dsn) as conn:
         with conn.cursor() as cur:
             cur.execute("DELETE FROM contract_drift_violations")

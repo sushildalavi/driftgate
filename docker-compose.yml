@@ -2,8 +2,8 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: schemapilot
-      POSTGRES_USER: schemapilot
+      POSTGRES_DB: driftgate
+      POSTGRES_USER: driftgate
       POSTGRES_PASSWORD: dev
     # 5432 not exposed on host to avoid conflicts with local postgres; use a `psql` exec if needed
     volumes:
@@ -11,7 +11,7 @@ services:
     ports:
       - "55433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U schemapilot -d schemapilot"]
+      test: ["CMD-SHELL", "pg_isready -U driftgate -d driftgate"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -38,8 +38,8 @@ services:
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+asyncpg://schemapilot:dev@postgres:5432/schemapilot
-      DATABASE_URL_SYNC: postgresql://schemapilot:dev@postgres:5432/schemapilot
+      DATABASE_URL: postgresql+asyncpg://driftgate:dev@postgres:5432/driftgate
+      DATABASE_URL_SYNC: postgresql://driftgate:dev@postgres:5432/driftgate
       ADMIN_SECRET: ${ADMIN_SECRET:-dev-secret}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-claude-haiku-4-5-20251001}
@@ -90,8 +90,8 @@ services:
       dockerfile: Dockerfile.runtime
     environment:
       EVENT_BACKEND: ${EVENT_BACKEND:-noop}
-      DATABASE_URL: postgresql+asyncpg://schemapilot:dev@postgres:5432/schemapilot_runtime
-      DATABASE_URL_SYNC: postgresql://schemapilot:dev@postgres:5432/schemapilot_runtime
+      DATABASE_URL: postgresql+asyncpg://driftgate:dev@postgres:5432/driftgate_runtime
+      DATABASE_URL_SYNC: postgresql://driftgate:dev@postgres:5432/driftgate_runtime
       DB_POOL_SIZE: ${DB_POOL_SIZE:-25}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-15}
       DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-30}

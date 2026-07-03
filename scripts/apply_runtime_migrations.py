@@ -13,7 +13,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Apply runtime SQL migrations.")
     parser.add_argument(
         "--dsn",
-        default=os.getenv("DATABASE_URL_SYNC", "postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime"),
+        default=os.getenv("DATABASE_URL_SYNC", "postgresql://driftgate:dev@localhost:55433/driftgate_runtime"),
         help="PostgreSQL DSN for sync psycopg2 connection.",
     )
     return parser.parse_args()
