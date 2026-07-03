@@ -1,5 +1,5 @@
 {
-  "name": "driftgate-angular",
+  "name": "driftgate",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",

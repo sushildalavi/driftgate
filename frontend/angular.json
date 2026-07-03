@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "driftgate-angular": {
+    "driftgate": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -56,10 +56,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "driftgate-angular:build:production"
+              "buildTarget": "driftgate:build:production"
             },
             "development": {
-              "buildTarget": "driftgate-angular:build:development"
+              "buildTarget": "driftgate:build:development"
             }
           },
           "defaultConfiguration": "development"
