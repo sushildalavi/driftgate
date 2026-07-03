@@ -8,6 +8,6 @@
   "breaking_count": 3996,
   "duplicate_baselines": 0,
   "duration_seconds": 157.1705,
-  "command_used": "tests/simulate_drift.py",
+  "command_used": "scripts/simulate_drift.py",
   "timestamp": "2026-05-28T01:18:11.924907+00:00"
 }

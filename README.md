@@ -1,123 +1,77 @@
-# DriftGate
+# DRIFTGATE
 
-DriftGate is a local-first API contract governance and runtime reliability platform.
+DRIFTGATE is an API contract governance and runtime reliability platform built around a single pipeline:
 
-This repository currently contains three runtime services:
+```mermaid
+flowchart TD
+  A["Angular 20 UI"] --> B["Node.js/Fastify webhook gateway"]
+  B --> C["FastAPI runtime guard"]
+  C --> D["PostgreSQL contract registry + outbox"]
+  D --> E["MongoDB raw payload / document history"]
+  E --> F["LangGraph review workflow"]
+  F --> G["Azure Service Bus-compatible delivery adapter"]
+  G --> H["Prometheus / Grafana metrics + k6 benchmarks"]
+```
 
-- `backend/`: scheduled API monitor and changelog service
-- `gateway/`: Node.js/TypeScript webhook gateway with HMAC and idempotency checks
-- root `app/`: runtime contract guard, webhook outbox, drift-event DLQ, and evidence-backed review pipeline
-- `frontend/`: Angular product site and application console for registry, drift review, DLQ, observability, and document-store browsing
+## Tech Stack
 
-It has two paths:
+- Angular 20 UI for the operator console
+- Node.js and Fastify for HMAC-verified webhook ingress and idempotency
+- FastAPI runtime guard for live payload tracking and drift classification
+- PostgreSQL for the contract registry, version history, subscriptions, and transactional outbox
+- MongoDB for raw payload captures, diff evidence, validation errors, and document history
+- LangGraph for grounded contract review workflows
+- Azure Service Bus-compatible delivery adapter for drift-event delivery
+- Prometheus and Grafana for metrics and dashboards
+- k6 for load and benchmark runs
 
-1. Scheduled drift monitoring for live endpoints.
-2. Runtime contract guarding for payload samples submitted by middleware.
+## Services
 
-## One-command quickstart
+- `frontend/`: Angular 20 control room
+- `gateway/`: Node.js/Fastify webhook gateway
+- `app/`: FastAPI runtime guard, review workflow, event publishing, and document-store integration
+- `backend/`: scheduled monitor and changelog service
+
+## Quickstart
 
 ```bash
 docker compose up -d --build
 curl -X POST http://localhost:8301/api/monitor/run-once \
-  -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
+  -H "X-DRIFTGATE-ADMIN-SECRET: dev-secret"
 ```
 
-- Landing page: `http://localhost:5173/`
+- Frontend: `http://localhost:5173/`
 - Monitor API: `http://localhost:8301`
 - Runtime guard API: `http://localhost:8302`
 - Gateway: `http://localhost:8303`
 
-## What it does
+## Runtime Behavior
 
-- Infers schemas from observed payloads
-- Computes deterministic schema hashes
-- Diffs schema changes and classifies severity
-- Persists snapshots and violations
-- Stores payload snapshots, schema diffs, validation errors, and replay artifacts in a MongoDB-compatible document store
-- Powers a dashboard for triage, AI review, and history
-- Supports an event-backend abstraction for drift publishing
+- Webhook ingress is verified with HMAC and idempotency checks in the gateway.
+- The runtime guard records payload snapshots, schema diffs, validation failures, and review evidence.
+- PostgreSQL stores registry metadata and outbox state.
+- MongoDB stores raw payload documents and history.
+- LangGraph powers the contract review workflow.
+- The delivery adapter can target an Azure Service Bus-compatible sender.
+- Metrics are exposed for Prometheus and visualized in Grafana.
+- k6 benchmarks are captured as JSON artifacts under `docs/benchmarks/`.
 
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph Sources
-    A[Public APIs]
-    B[Internal APIs]
-    C[Drift simulator]
-  end
-
-  subgraph Backend
-    G1[Webhook gateway]
-    M1[Monitor worker]
-    M2[Schema inference]
-    M3[Severity classifier]
-    M4[Runtime guard]
-  end
-
-  DB[(PostgreSQL)]
-  DOC[(MongoDB / Cosmos docs)]
-  LP[Public landing page]
-  FE[Angular app shell]
-
-  A --> M1
-  B --> M1
-  C --> M1
-  A --> G1 --> M4
-  M1 --> M2 --> M3 --> DB
-  M4 --> DB
-  M4 --> DOC
-  LP --> FE --> Backend
-```
-
-## Frontend routes
-
-- `/` public product landing page
-- `/app/overview` governance control center
-- `/app/registry` schema registry and ownership
-- `/app/diffs` schema drift viewer
-- `/app/reliability` webhook retries and DLQ replay
-- `/app/benchmark` benchmark explorer
-- `/app/observability` telemetry and health surface
-- `/app/architecture` Azure-compatible architecture view
-- `/app/documents` payload and diff history
-- `/app/review` contract review workflow
-
-## Local run
+## Local Development
 
 ```bash
 docker compose up -d --build
-curl -X POST http://localhost:8301/api/monitor/run-once \
-  -H "X-SCHEMAPILOT-ADMIN-SECRET: dev-secret"
 ```
 
-## Runtime guard
-
-The runtime guard exposes a `POST /track` endpoint for live payload samples and a metrics endpoint for counts.
-It also writes payload snapshots and drift documents to the document store configured by `DOCUMENT_STORE_BACKEND`.
-
-Runtime event delivery is environment driven:
+Useful environment defaults:
 
 - `EVENT_BACKEND=noop` for local development
 - `EVENT_BACKEND=kafka` when a Kafka producer is injected
 - `EVENT_BACKEND=azure_service_bus` when an Azure Service Bus sender is injected
 - `DOCUMENT_STORE_BACKEND=memory` for tests and minimal local mode
-- `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB or Cosmos-compatible deployments
+- `DOCUMENT_STORE_BACKEND=mongo` with `DOCUMENT_STORE_URI=mongodb://mongo:27017` for local MongoDB
 
-The code is structured for Azure-compatible adapters, but cloud resources are optional and not required for local runs. See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for what "Azure-compatible" does and doesn't mean here.
+## Notes
 
-## Documentation
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — system design and data paths
-- [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) — running each service locally
-- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) — Azure-compatible event backend and Cosmos-compatible document store notes (not deployed)
-- [docs/FAILURE_MODES.md](docs/FAILURE_MODES.md) — how each component behaves on failure
-- [docs/BENCHMARKS.md](docs/BENCHMARKS.md) — measured k6 load test results
-- [DEPLOY.md](DEPLOY.md) — free-tier deploy guide (Neon + Cloud Run + Vercel)
-
-## Portfolio Proof
-
-- Architecture and evaluation: [docs/PORTFOLIO_PROOF.md](docs/PORTFOLIO_PROOF.md)
-- Demo and local mode: use the Docker Compose command above
-- Test commands: `pytest`, `npm run build`, `docker compose config`, `cd gateway && npm test`, `cd frontend && npm test -- --watch=false --browsers=ChromeHeadless`
-- Evidence: benchmark and regression docs under `docs/`
+- The repository uses the `DRIFTGATE` project name throughout the codebase.
+- Benchmarks, simulations, and generated artifacts live in JSON or code form instead of markdown docs.
+- The architecture is designed to be local-first and cloud-compatible without requiring cloud deployment.
