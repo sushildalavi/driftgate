@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
         await document_store.aclose()
 
 
-app = FastAPI(title="DriftGate Contract Guard", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="DRIFTGATE Runtime Guard", version="1.0.0", lifespan=lifespan)
 app.state.document_store = document_store
 app.state.contract_review_provider = contract_review_provider
 app.state.event_publisher = event_publisher

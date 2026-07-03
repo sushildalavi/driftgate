@@ -7,14 +7,14 @@ from app import __version__
 from app.config import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-log = logging.getLogger("schemapilot")
+log = logging.getLogger("driftgate")
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="DriftGate",
+        title="DRIFTGATE Scheduled Monitor",
         version=__version__,
-        description="API Contract Drift Monitor",
+        description="Scheduled API contract monitor and changelog service",
     )
 
     app.add_middleware(
@@ -41,7 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(monitor.router)
     app.include_router(changelog.router)
 
-    log.info("driftgate started, cors=%s", settings.cors_origins)
+    log.info("DRIFTGATE monitor started, cors=%s", settings.cors_origins)
     return app
 
 

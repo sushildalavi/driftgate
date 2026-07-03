@@ -8,10 +8,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = Field(
-        default="postgresql+asyncpg://schemapilot:dev@localhost:5432/schemapilot"
+        default="postgresql+asyncpg://driftgate:dev@localhost:5432/driftgate"
     )
     database_url_sync: str = Field(
-        default="postgresql://schemapilot:dev@localhost:5432/schemapilot"
+        default="postgresql://driftgate:dev@localhost:5432/driftgate"
     )
 
     admin_secret: str = Field(default="dev-secret")
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     llm_model: str = "claude-haiku-4-5-20251001"
 
-    frontend_origins: str = "http://localhost:5175"
+    frontend_origins: str = "http://localhost:5173"
     registry_path: str = "/app/config/apis.yaml"
 
     fetch_timeout_sec: int = 10

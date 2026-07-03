@@ -14,7 +14,7 @@ from app.config import settings
 from app.core.schema_diff import Diff
 from app.models import Changelog, SchemaDiff, SchemaSnapshot
 
-log = logging.getLogger("schemapilot.changelog")
+log = logging.getLogger("driftgate.changelog")
 
 
 @dataclass

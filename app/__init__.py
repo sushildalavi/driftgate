@@ -1,1 +1,1 @@
-"""DriftGate contract guard application package."""
+"""DRIFTGATE contract guard application package."""

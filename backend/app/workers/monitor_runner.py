@@ -20,9 +20,9 @@ from app.core.schema_diff import diff_schemas
 from app.core.schema_infer import infer_schema
 from app.models import ApiEndpoint, MonitorRun, SchemaDiff, SchemaSnapshot
 
-log = logging.getLogger("schemapilot.monitor")
+log = logging.getLogger("driftgate.monitor")
 
-LOCK_NAME = "schemapilot.monitor"
+LOCK_NAME = "driftgate.monitor"
 
 
 @dataclass
