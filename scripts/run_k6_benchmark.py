@@ -142,7 +142,7 @@ def _build_command(
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run a DriftGate k6 benchmark and emit derived docs.")
+    parser = argparse.ArgumentParser(description="Run a DRIFTGATE k6 benchmark and emit derived docs.")
     parser.add_argument("--script", default="k6/track_profile.js")
     parser.add_argument("--name", default="")
     parser.add_argument("--output-dir", default="docs/benchmarks")
@@ -193,7 +193,7 @@ def main() -> None:
     state = _load_state(
         dsn=os.getenv(
             "DATABASE_URL_SYNC",
-            "postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime",
+            "postgresql://driftgate:dev@localhost:55433/driftgate_runtime",
         ),
         route_path=args.route_path,
         service_name=args.service_name,

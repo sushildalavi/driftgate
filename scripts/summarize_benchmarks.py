@@ -105,7 +105,7 @@ def summarize_artifact(path: Path) -> dict[str, Any]:
 
 def render_markdown(rows: list[dict[str, Any]]) -> str:
     lines = [
-        "# DriftGate Benchmark Summary",
+        "# DRIFTGATE Benchmark Summary",
         "",
         "| artifact | VUs | requests | failed checks | p50 latency ms | p95 latency ms | p99 latency ms | error rate | throughput rps | error classes | state snapshot |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -135,7 +135,7 @@ def render_markdown(rows: list[dict[str, Any]]) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Summarize DriftGate k6 benchmark artifacts.")
+    parser = argparse.ArgumentParser(description="Summarize DRIFTGATE k6 benchmark artifacts.")
     parser.add_argument(
         "--artifacts",
         nargs="+",

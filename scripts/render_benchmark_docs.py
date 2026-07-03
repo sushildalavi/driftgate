@@ -12,9 +12,9 @@ from scripts.summarize_benchmarks import render_markdown, summarize_artifact
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Render DriftGate benchmark docs from raw k6 JSON.")
+    parser = argparse.ArgumentParser(description="Render DRIFTGATE benchmark docs from raw k6 JSON.")
     parser.add_argument("--output", required=True)
-    parser.add_argument("--title", default="DriftGate Benchmark Summary")
+    parser.add_argument("--title", default="DRIFTGATE Benchmark Summary")
     parser.add_argument("--artifacts", nargs="+", required=True)
     return parser
 
@@ -24,7 +24,7 @@ def main() -> None:
     rows = [summarize_artifact(Path(path)) for path in args.artifacts]
     markdown = render_markdown(rows)
     if args.title:
-        markdown = markdown.replace("# DriftGate Benchmark Summary", f"# {args.title}", 1)
+        markdown = markdown.replace("# DRIFTGATE Benchmark Summary", f"# {args.title}", 1)
     Path(args.output).write_text(markdown + "\n", encoding="utf-8")
 
 
