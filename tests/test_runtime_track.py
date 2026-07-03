@@ -25,11 +25,11 @@ from app.runtime import webhook as webhook_runtime
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://schemapilot:dev@localhost:55433/schemapilot_runtime",
+    "postgresql+asyncpg://driftgate:dev@localhost:55433/driftgate_runtime",
 )
 DATABASE_URL_SYNC = os.getenv(
     "DATABASE_URL_SYNC",
-    "postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime",
+    "postgresql://driftgate:dev@localhost:55433/driftgate_runtime",
 )
 
 

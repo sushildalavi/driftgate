@@ -15,8 +15,8 @@ from app.db import SessionLocal, get_db
 from app.main import app
 from app.runtime.events import EventPublisher, build_default_publisher
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://schemapilot:dev@localhost:55433/schemapilot_runtime")
-DATABASE_URL_SYNC = os.getenv("DATABASE_URL_SYNC", "postgresql://schemapilot:dev@localhost:55433/schemapilot_runtime")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://driftgate:dev@localhost:55433/driftgate_runtime")
+DATABASE_URL_SYNC = os.getenv("DATABASE_URL_SYNC", "postgresql://driftgate:dev@localhost:55433/driftgate_runtime")
 
 
 class _CapturePublisher(EventPublisher):
