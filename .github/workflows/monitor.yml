@@ -1,4 +1,4 @@
-name: DriftGate Monitor
+name: DRIFTGATE Monitor
 
 on:
   workflow_dispatch:
@@ -11,8 +11,8 @@ jobs:
         run: |
           curl -fsSL --max-time 120 \
             -X POST "$BACKEND_URL/api/monitor/run-once" \
-            -H "X-SCHEMAPILOT-ADMIN-SECRET: $ADMIN_SECRET" \
+            -H "X-DRIFTGATE-ADMIN-SECRET: $ADMIN_SECRET" \
             -H "Content-Type: application/json"
         env:
-          BACKEND_URL: ${{ secrets.SCHEMAPILOT_BACKEND_URL }}
-          ADMIN_SECRET: ${{ secrets.SCHEMAPILOT_ADMIN_SECRET }}
+          BACKEND_URL: ${{ secrets.DRIFTGATE_BACKEND_URL }}
+          ADMIN_SECRET: ${{ secrets.DRIFTGATE_ADMIN_SECRET }}

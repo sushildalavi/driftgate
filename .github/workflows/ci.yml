@@ -1,4 +1,4 @@
-name: DriftGate CI
+name: DRIFTGATE CI
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: driftgate_test
-          POSTGRES_USER: schemapilot
+          POSTGRES_USER: driftgate
           POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
@@ -41,8 +41,8 @@ jobs:
 
       - name: Run Alembic migrations
         env:
-          DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
-          DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
+          DATABASE_URL: postgresql+asyncpg://driftgate:test@localhost:5432/driftgate_test
+          DATABASE_URL_SYNC: postgresql://driftgate:test@localhost:5432/driftgate_test
           ADMIN_SECRET: ci-secret
           FRONTEND_ORIGINS: http://localhost:5174
           REGISTRY_PATH: /tmp/apis.yaml
@@ -50,8 +50,8 @@ jobs:
 
       - name: Run tests
         env:
-          DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
-          DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
+          DATABASE_URL: postgresql+asyncpg://driftgate:test@localhost:5432/driftgate_test
+          DATABASE_URL_SYNC: postgresql://driftgate:test@localhost:5432/driftgate_test
           ADMIN_SECRET: ci-secret
           FRONTEND_ORIGINS: http://localhost:5174
           REGISTRY_PATH: /tmp/apis.yaml
@@ -64,7 +64,7 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: driftgate_test
-          POSTGRES_USER: schemapilot
+          POSTGRES_USER: driftgate
           POSTGRES_PASSWORD: test
         ports:
           - 5432:5432
@@ -89,8 +89,8 @@ jobs:
 
       - name: Run runtime tests
         env:
-          DATABASE_URL: postgresql+asyncpg://schemapilot:test@localhost:5432/driftgate_test
-          DATABASE_URL_SYNC: postgresql://schemapilot:test@localhost:5432/driftgate_test
+          DATABASE_URL: postgresql+asyncpg://driftgate:test@localhost:5432/driftgate_test
+          DATABASE_URL_SYNC: postgresql://driftgate:test@localhost:5432/driftgate_test
           ADMIN_SECRET: ci-secret
           FRONTEND_ORIGINS: http://localhost:5174
           REGISTRY_PATH: /tmp/apis.yaml
