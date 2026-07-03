@@ -9,11 +9,13 @@ import { RouterLink } from '@angular/router';
 })
 export class ArchitecturePage {
   readonly layers = [
-    { title: 'Webhook ingress', detail: 'HMAC verification, idempotency, and request normalization at the edge.' },
-    { title: 'Runtime guard', detail: 'Schema drift detection, payload snapshots, and runtime contract classification.' },
-    { title: 'Event backends', detail: 'Azure Service Bus-compatible adapters with local no-op and Kafka paths.' },
-    { title: 'Document store', detail: 'Mongo-first evidence store that can be adapted to Cosmos-compatible APIs.' },
-    { title: 'Control room', detail: 'Angular console for governance, review, observability, and replay.' },
-    { title: 'Benchmarks', detail: 'k6 profiles and artifact renderers keep proof tied to raw results.' },
+    { title: 'Angular 20 UI', detail: 'Operator control room for governance, review, observability, and evidence.' },
+    { title: 'Node.js/Fastify webhook gateway', detail: 'HMAC verification, idempotency, and request normalization at the edge.' },
+    { title: 'FastAPI runtime guard', detail: 'Schema drift detection, payload snapshots, and runtime contract classification.' },
+    { title: 'PostgreSQL contract registry + outbox', detail: 'Stores contracts, versions, subscriptions, and reliable delivery state.' },
+    { title: 'MongoDB raw payload / document history', detail: 'Preserves payload history, validation failures, diffs, and review artifacts.' },
+    { title: 'LangGraph review workflow', detail: 'Grounded review decisions and migration notes from evidence.' },
+    { title: 'Azure Service Bus-compatible delivery adapter', detail: 'Drift-event delivery abstraction for Azure-shaped infrastructure.' },
+    { title: 'Prometheus / Grafana + k6', detail: 'Metrics, dashboards, and benchmark runs for repeatable verification.' },
   ];
 }
