@@ -143,7 +143,7 @@ def _build_command(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run a DRIFTGATE k6 benchmark and emit derived docs.")
-    parser.add_argument("--script", default="k6/track_profile.js")
+    parser.add_argument("--script", default="k6/trackProfile.js")
     parser.add_argument("--name", default="")
     parser.add_argument("--output-dir", default="docs/benchmarks")
     parser.add_argument("--track-url", default="http://localhost:8302/track")
