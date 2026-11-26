@@ -2,10 +2,8 @@ export interface MonitorMetrics {
   endpoint_count: number;
   snapshot_count: number;
   severity_counts: Record<string, number>;
-  drift_rate?: number;
-  queue_lag?: number;
-  dlq_count?: number;
-  retry_count?: number;
+  webhook_delivery_dlq_count?: number;
+  webhook_outbox_pending_count?: number;
   contract_review_count?: number;
   contract_review_insufficient_evidence_count?: number;
   drift_event_dlq_count?: number;

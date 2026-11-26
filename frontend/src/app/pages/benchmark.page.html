@@ -12,8 +12,8 @@
     </div>
 
     <p class="section-copy">
-      This screen is a navigation-level explorer for the measured k6 artifacts. It is intentionally labeled as a profile view,
-      not as a claim of production load.
+      A static list of load tiers for the k6 profile script. This page does not run benchmarks or load result files; recorded
+      results are JSON files under docs/benchmarks.
     </p>
   </section>
 
@@ -41,8 +41,8 @@
   <section class="card">
     <div class="card-header">
       <div>
-        <h3>Measured signals</h3>
-        <p>Every benchmark artifact is expected to preserve these values.</p>
+        <h3>Signals of interest</h3>
+        <p>Values to record when running a load test.</p>
       </div>
       <span class="tag">raw JSON first</span>
     </div>
@@ -51,7 +51,7 @@
       @for (signal of signals; track signal) {
         <div class="mini-card">
           <strong>{{ signal }}</strong>
-          <p class="muted">Captured from raw k6 output and rendered into Markdown after the run.</p>
+          <p class="muted">Collected from k6 output or the database after a run.</p>
         </div>
       }
     </div>

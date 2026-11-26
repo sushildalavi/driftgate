@@ -82,10 +82,10 @@ def summarize_artifact(path: Path) -> dict[str, Any]:
     vus = metrics.get("vus", metrics.get("vus_max", {}))
     checks = metrics.get("checks", {})
     error_classes = {
-        "transport": int(_metric_number(metrics, "request_error_transport_total", "value")),
-        "validation": int(_metric_number(metrics, "request_error_validation_total", "value")),
-        "client": int(_metric_number(metrics, "request_error_client_total", "value")),
-        "server": int(_metric_number(metrics, "request_error_server_total", "value")),
+        "transport": int(_metric_number(metrics, "request_error_transport_total", "count")),
+        "validation": int(_metric_number(metrics, "request_error_validation_total", "count")),
+        "client": int(_metric_number(metrics, "request_error_client_total", "count")),
+        "server": int(_metric_number(metrics, "request_error_server_total", "count")),
     }
     return {
         "artifact": path.name,
@@ -139,7 +139,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--artifacts",
         nargs="+",
-        default=["docs/benchmarks/k6_smoke.json", "docs/benchmarks/k6_50vus.json"],
+        default=["docs/benchmarks/k6Smoke.json", "docs/benchmarks/k6Baseline50Vus.json"],
     )
     parser.add_argument("--output", default="")
     return parser

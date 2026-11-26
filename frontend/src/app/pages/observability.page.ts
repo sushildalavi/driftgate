@@ -12,8 +12,8 @@ export class ObservabilityPage {
     { label: 'Backend health', url: 'http://localhost:8301/health', detail: 'Monitor API readiness probe.' },
     { label: 'Runtime metrics', url: 'http://localhost:8302/api/v1/metrics', detail: 'JSON metrics used by the console.' },
     { label: 'Gateway health', url: 'http://localhost:8303/health', detail: 'Webhook ingress status.' },
-    { label: 'Prometheus', url: 'http://localhost:9301', detail: 'Metrics scrape endpoint when enabled.' },
-    { label: 'Grafana', url: 'http://localhost:3301', detail: 'Dashboard surface when provisioned.' },
+    { label: 'Prometheus', url: 'http://localhost:9090', detail: 'Available when the observability compose file is running.' },
+    { label: 'Grafana', url: 'http://localhost:3000', detail: 'Available when the observability compose file is running.' },
   ];
 
   readonly signals = [
@@ -21,7 +21,7 @@ export class ObservabilityPage {
     'contract_review_insufficient_evidence_count',
     'drift_event_dlq_count',
     'webhook_delivery_dlq_count',
-    'webhook_delivery_attempts_count',
+    'webhook_outbox_pending_count',
     'drift_detection_latency_seconds',
   ];
 }

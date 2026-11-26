@@ -7,8 +7,8 @@ from scripts.openapi_diff import classify_diff, diff_schemas, diff_openapi_docum
 
 def test_openapi_diff_detects_breaking_changes():
     fixture_dir = Path(__file__).resolve().parent / "fixtures"
-    old = _extract_schema(_load_json(fixture_dir / "openapi_old.json"))
-    new = _extract_schema(_load_json(fixture_dir / "openapi_new.json"))
+    old = _extract_schema(_load_json(fixture_dir / "openapiOld.json"))
+    new = _extract_schema(_load_json(fixture_dir / "openapiNew.json"))
     result = classify_diff(diff_schemas(old["Event"], new["Event"]))
     assert result["breaking"] is True
     assert "payload" in result["diff"]["type_changes"][0]
@@ -16,7 +16,7 @@ def test_openapi_diff_detects_breaking_changes():
 
 def test_openapi_document_diff_detects_breaking_changes():
     fixture_dir = Path(__file__).resolve().parent / "fixtures"
-    result = diff_openapi_documents(_load_json(fixture_dir / "openapi_old.json"), _load_json(fixture_dir / "openapi_new.json"))
+    result = diff_openapi_documents(_load_json(fixture_dir / "openapiOld.json"), _load_json(fixture_dir / "openapiNew.json"))
     assert result["breaking"] is True
 
 

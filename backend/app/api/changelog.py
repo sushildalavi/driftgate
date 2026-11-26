@@ -60,4 +60,5 @@ async def generate_changelog(
         raise HTTPException(422, "no diffs found for snapshot")
 
     result = await _generate(db, snapshot, diffs_rows)
+    await db.commit()
     return ChangelogOut.model_validate(result)

@@ -9,7 +9,7 @@ test-backend:
 
 test-runtime: runtime-up runtime-migrate
 	$(PYTHON) -m pip install -q -r requirements.txt
-	$(PYTHON) -m pytest -q tests/test_runtime_track.py
+	$(PYTHON) -m pytest -q tests
 
 test-frontend:
 	cd frontend && npm run build
@@ -25,7 +25,7 @@ simulate: runtime-up runtime-migrate
 	DATABASE_URL_SYNC=postgresql://driftgate:dev@localhost:55433/driftgate_runtime \
 	SIM_REQUESTS=5000 \
 	SIM_CONCURRENCY=200 \
-	SIM_OUTPUT_PATH=docs/benchmarks/driftgate_simulation_5000.json \
+	SIM_OUTPUT_PATH=docs/benchmarks/simulation5000.json \
 	$(PYTHON) scripts/simulate_drift.py
 
 demo:
