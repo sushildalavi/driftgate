@@ -59,6 +59,5 @@ async def generate_changelog(
     if not diffs_rows:
         raise HTTPException(422, "no diffs found for snapshot")
 
-    diff_ids = [str(d.id) for d in diffs_rows]
     result = await _generate(db, snapshot, diffs_rows)
     return ChangelogOut.model_validate(result)

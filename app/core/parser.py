@@ -63,24 +63,6 @@ def serialize_ast_to_string(structure: Any) -> str:
     return "unknown"
 
 
-def structural_ast(value: Any) -> str:
-    if isinstance(value, dict):
-        parts = [f"{k}:{structural_ast(v)}" for k, v in sorted(value.items(), key=lambda kv: kv[0])]
-        return "object{" + ";".join(parts) + "}"
-
-    if isinstance(value, list):
-        if not value:
-            return "array_unknown"
-
-        item_types = [structural_ast(v) for v in value]
-        first = item_types[0]
-        if all(t == first for t in item_types):
-            return f"array_{first}"
-        return "array_mixed"
-
-    return _primitive_type(value)
-
-
 def structural_string(payload: dict[str, Any]) -> str:
     if not isinstance(payload, dict):
         raise TypeError("payload must be a JSON object at the root")

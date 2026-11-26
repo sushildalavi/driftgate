@@ -139,23 +139,6 @@ async def register_payload_snapshot(
     return endpoint_id, inserted
 
 
-async def get_active_baseline(db: AsyncSession, endpoint_id: str) -> dict[str, Any] | None:
-    row = await db.execute(
-        text(
-            """
-            SELECT normalized_schema
-            FROM schema_snapshots
-            WHERE endpoint_id = CAST(:endpoint_id AS uuid)
-              AND is_active_baseline = TRUE
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        ),
-        {"endpoint_id": endpoint_id},
-    )
-    return row.scalar_one_or_none()
-
-
 async def get_active_baseline_snapshot(db: AsyncSession, endpoint_id: str) -> dict[str, Any] | None:
     row = await db.execute(
         text(
