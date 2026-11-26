@@ -17,9 +17,15 @@ class DiffItem:
     reason: str
 
 
+def _is_leaf(node: Any) -> bool:
+    # A payload can have a field called "type". Only a string value marks a schema leaf;
+    # a nested schema under that key means this node is an ordinary object.
+    return isinstance(node, dict) and isinstance(node.get("type"), str)
+
+
 def _type_of(node: Any) -> str:
-    if isinstance(node, dict) and "type" in node:
-        return str(node["type"])
+    if _is_leaf(node):
+        return node["type"]
     if isinstance(node, dict):
         return "object"
     if isinstance(node, list):
@@ -28,7 +34,7 @@ def _type_of(node: Any) -> str:
 
 
 def _nullable_of(node: Any) -> bool | None:
-    if isinstance(node, dict) and "nullable" in node:
+    if _is_leaf(node) and "nullable" in node:
         return bool(node["nullable"])
     return None
 
@@ -36,7 +42,7 @@ def _nullable_of(node: Any) -> bool | None:
 def _flatten(schema: Any, prefix: str = "") -> dict[str, Any]:
     flat: dict[str, Any] = {}
     if isinstance(schema, dict):
-        if "type" in schema:
+        if _is_leaf(schema):
             flat[prefix or "[root]"] = schema
             return flat
         for k, v in schema.items():

@@ -65,10 +65,7 @@ async def run_monitor(session: AsyncSession, registry_path: str | None = None) -
 
         try:
             endpoints = await upsert_endpoints(session, path)
-            results = await asyncio.gather(
-                *[_process_endpoint(session, ep, run_id) for ep in endpoints],
-                return_exceptions=True,
-            )
+            results = await _process_endpoints(session, endpoints, run_id)
 
             ok_results = [r for r in results if isinstance(r, _EndpointResult)]
             err_results = [r for r in results if isinstance(r, Exception)]
@@ -111,18 +108,42 @@ async def run_monitor(session: AsyncSession, registry_path: str | None = None) -
         return run_id
 
 
+async def _process_endpoints(
+    session: AsyncSession,
+    endpoints: list[ApiEndpoint],
+    run_id: uuid.UUID,
+) -> list[_EndpointResult | BaseException]:
+    """Fetch all endpoints concurrently, then store the results one at a time.
+
+    An AsyncSession must not be used by concurrent tasks.
+    """
+    fetches = await asyncio.gather(
+        *[
+            fetch_endpoint(url=ep.url, method=ep.method, headers=ep.headers_json or {})
+            for ep in endpoints
+        ],
+        return_exceptions=True,
+    )
+
+    results: list[_EndpointResult | BaseException] = []
+    for endpoint, fetch in zip(endpoints, fetches, strict=True):
+        try:
+            if isinstance(fetch, BaseException):
+                raise fetch
+            results.append(await _process_endpoint(session, endpoint, run_id, fetch))
+        except Exception as exc:
+            log.error("endpoint %s failed: %s", endpoint.name, exc)
+            results.append(exc)
+    return results
+
+
 async def _process_endpoint(
     session: AsyncSession,
     endpoint: ApiEndpoint,
     run_id: uuid.UUID,
+    fetch: FetchResult,
 ) -> _EndpointResult:
     result = _EndpointResult(endpoint_id=endpoint.id, name=endpoint.name)
-
-    fetch: FetchResult = await fetch_endpoint(
-        url=endpoint.url,
-        method=endpoint.method,
-        headers=endpoint.headers_json or {},
-    )
 
     if not fetch.ok:
         sentinel_hash = f"FETCH_ERROR:{fetch.error}"
