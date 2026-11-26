@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from app.runtime.event_backends import AzureServiceBusEventBackend, build_event_backend

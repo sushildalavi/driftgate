@@ -18,20 +18,14 @@ def _advisory_key(name: str) -> int:
 async def advisory_lock(
     session: AsyncSession, name: str
 ) -> AsyncGenerator[bool, None]:
-    """Context manager that acquires a Postgres advisory lock (non-blocking).
+    """Try to take a Postgres advisory lock for the current transaction (non-blocking).
 
-    Yields True if the lock was acquired, False if it was already held.
-    Always releases on exit if acquired.
+    Yields True if the lock was acquired, False if another transaction holds it.
+    Postgres releases the lock on commit or rollback. A session-level lock would have
+    to be released on the same pooled connection, which is not guaranteed after a commit.
     """
     key = _advisory_key(name)
     result = await session.execute(
-        text("SELECT pg_try_advisory_lock(:key)"), {"key": key}
+        text("SELECT pg_try_advisory_xact_lock(:key)"), {"key": key}
     )
-    acquired: bool = result.scalar()
-    try:
-        yield acquired
-    finally:
-        if acquired:
-            await session.execute(
-                text("SELECT pg_advisory_unlock(:key)"), {"key": key}
-            )
+    yield result.scalar()

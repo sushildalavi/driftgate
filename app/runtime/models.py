@@ -5,14 +5,6 @@ from enum import IntEnum
 from typing import Any
 
 
-class Compatibility(str):
-    SAFE = "SAFE"
-    BACKWARD_COMPATIBLE = "BACKWARD_COMPATIBLE"
-    FORWARD_COMPATIBLE = "FORWARD_COMPATIBLE"
-    RISKY = "RISKY"
-    BREAKING = "BREAKING"
-
-
 class SeverityRank(IntEnum):
     SAFE = 0
     BACKWARD_COMPATIBLE = 1

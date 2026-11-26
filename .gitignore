@@ -16,23 +16,28 @@ env/
 node_modules/
 dist/
 .vite/
+.angular/
 *.tsbuildinfo
 
-# Env
+# Env and credentials
 .env
 .env.local
 .env.*.local
+*.pem
+*.key
 docker-compose.override.yml
 
-# Editors
+# Editors and OS
 .vscode/
 .idea/
 .DS_Store
 
-# Build artifacts
+# Logs and coverage
 *.log
 coverage/
 htmlcov/
 .coverage
-*.log
-htmlcov/
+
+# Local assistant instructions
+CLAUDE.md
+AGENTS.md

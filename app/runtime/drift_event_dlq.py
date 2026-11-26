@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import json
-import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.db import SessionLocal
 from app.runtime.document_store import DocumentStore
@@ -237,7 +234,3 @@ async def replay_event_dlq(
     if replay_error is not None:
         return {"replayed": False, "error": replay_error, "dlq": updated}
     return {"replayed": True, "dlq": updated}
-
-
-def serialize_event(event: DriftEvent) -> dict[str, Any]:
-    return _event_payload(event)

@@ -11,3 +11,6 @@ frontend/dist
 frontend/node_modules
 gateway/node_modules
 backend/.pytest_cache
+**/.env
+**/.env.*
+**/.venv

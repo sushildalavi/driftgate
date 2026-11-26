@@ -69,15 +69,15 @@
           <div class="signal-strip">
             <div class="signal-card">
               <span>Webhook DLQ</span>
-              <strong>{{ overview.metrics.dlq_count ?? 0 }}</strong>
+              <strong>{{ overview.metrics.webhook_delivery_dlq_count ?? 0 }}</strong>
             </div>
             <div class="signal-card">
               <span>Drift-event DLQ</span>
               <strong>{{ overview.metrics.drift_event_dlq_count ?? 0 }}</strong>
             </div>
             <div class="signal-card">
-              <span>Retry pressure</span>
-              <strong>{{ overview.metrics.retry_count ?? 0 }}</strong>
+              <span>Outbox pending</span>
+              <strong>{{ overview.metrics.webhook_outbox_pending_count ?? 0 }}</strong>
             </div>
           </div>
 
@@ -233,7 +233,7 @@
         <p class="panel-label">Architecture</p>
         <h2>Simple, legible system boundaries</h2>
       </div>
-      <p class="section-copy">The UI mirrors the actual system layout instead of hiding implementation behind marketing fluff.</p>
+      <p class="section-copy">The services and stores that make up the local stack.</p>
     </div>
 
     <div class="architecture-grid">

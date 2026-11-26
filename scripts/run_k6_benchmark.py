@@ -99,7 +99,6 @@ def _build_command(
     http_method: str,
     vus: int | None,
     total_requests: int | None,
-    duration: str | None,
 ) -> list[str]:
     env_args = [
         "-e",
@@ -117,8 +116,6 @@ def _build_command(
         env_args.extend(["-e", f"K6_VUS={vus}"])
     if total_requests is not None:
         env_args.extend(["-e", f"K6_TOTAL_REQUESTS={total_requests}"])
-    if duration is not None:
-        env_args.extend(["-e", f"K6_DURATION={duration}"])
     if shutil.which("k6"):
         command = ["k6", "run", *env_args, "--summary-export", str(output_path), script]
     else:
@@ -143,7 +140,7 @@ def _build_command(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run a DRIFTGATE k6 benchmark and emit derived docs.")
-    parser.add_argument("--script", default="k6/track_profile.js")
+    parser.add_argument("--script", default="k6/trackProfile.js")
     parser.add_argument("--name", default="")
     parser.add_argument("--output-dir", default="docs/benchmarks")
     parser.add_argument("--track-url", default="http://localhost:8302/track")
@@ -153,7 +150,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--http-method", default="POST")
     parser.add_argument("--vus", type=int, default=25)
     parser.add_argument("--total-requests", type=int, default=10000)
-    parser.add_argument("--duration", default="")
     parser.add_argument("--skip-markdown", action="store_true")
     return parser
 
@@ -162,11 +158,7 @@ def main() -> None:
     args = build_parser().parse_args()
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    name = args.name or (
-        f"{Path(args.script).stem}_{args.total_requests}req_{args.vus}vus"
-        if args.total_requests is not None
-        else f"{Path(args.script).stem}_{args.vus}vus"
-    )
+    name = args.name or f"{Path(args.script).stem}_{args.total_requests}req_{args.vus}vus"
     summary_path = output_dir / f"{name}.json"
     state_path = output_dir / f"{name}.state.json"
     markdown_path = output_dir / f"{name}.md"
@@ -180,8 +172,7 @@ def main() -> None:
         namespace=args.namespace,
         http_method=args.http_method,
         vus=args.vus,
-        total_requests=args.total_requests if args.duration == "" else None,
-        duration=args.duration or None,
+        total_requests=args.total_requests,
     )
     print("Running:", " ".join(command))
     completed = subprocess.run(command, check=False)

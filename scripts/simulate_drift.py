@@ -20,7 +20,7 @@ CONCURRENCY = int(os.getenv("SIM_CONCURRENCY", "200"))
 OUTPUT_PATH = Path(
     os.getenv(
         "SIM_OUTPUT_PATH",
-        "docs/benchmarks/driftgate_simulation_5000.json",
+        "docs/benchmarks/simulation5000.json",
     )
 )
 

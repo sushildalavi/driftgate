@@ -8,8 +8,8 @@ from scripts.contract_review_agent import build_review, _load_json
 def test_removed_required_field_fails():
     fixture_dir = Path(__file__).resolve().parent / "fixtures"
     review = build_review(
-        _load_json(fixture_dir / "openapi_old.json"),
-        _load_json(fixture_dir / "openapi_new.json"),
+        _load_json(fixture_dir / "openapiOld.json"),
+        _load_json(fixture_dir / "openapiNew.json"),
     )
     assert review["ci_decision"] == "fail"
     assert review["risk_level"] == "high"
@@ -28,8 +28,8 @@ def test_added_optional_field_passes():
 def test_generated_pr_comment_includes_evidence():
     fixture_dir = Path(__file__).resolve().parent / "fixtures"
     review = build_review(
-        _load_json(fixture_dir / "openapi_old.json"),
-        _load_json(fixture_dir / "openapi_new.json"),
+        _load_json(fixture_dir / "openapiOld.json"),
+        _load_json(fixture_dir / "openapiNew.json"),
     )
     assert "DRIFTGATE Contract Review" in review["pr_comment_markdown"]
     assert "Event.payload type object -> string" in review["pr_comment_markdown"]

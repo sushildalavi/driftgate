@@ -1,3 +1,4 @@
+from app.runtime.canonical import canonicalize
 from app.runtime.classifier import diff_and_classify, summarize_classification
 
 
@@ -79,3 +80,17 @@ def test_array_item_mutation_detected():
     result = diff_and_classify(old, new)
     assert result
     assert summarize_classification(result) == "BREAKING"
+
+
+def test_field_named_type_does_not_hide_a_removed_field():
+    old = canonicalize({"type": "invoice.paid", "amount": 5, "currency": "usd"})
+    new = canonicalize({"type": "invoice.paid", "amount": 5})
+    diffs = diff_and_classify(old, new)
+    assert [(d.path, d.classification) for d in diffs] == [("currency", "BREAKING")]
+
+
+def test_nested_object_with_type_and_nullable_fields_is_diffed_by_path():
+    old = canonicalize({"event": {"type": "a", "nullable": False, "id": 1}})
+    new = canonicalize({"event": {"type": "a", "nullable": False, "id": "1"}})
+    diffs = diff_and_classify(old, new)
+    assert [(d.path, d.old_type, d.new_type) for d in diffs] == [("event.id", "integer", "string")]

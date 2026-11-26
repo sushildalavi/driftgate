@@ -4,8 +4,7 @@ import hashlib
 import json
 import logging
 import re
-from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,12 +14,6 @@ from app.core.schema_diff import Diff
 from app.models import Changelog, SchemaDiff, SchemaSnapshot
 
 log = logging.getLogger("driftgate.changelog")
-
-
-@dataclass
-class _ChangelogResult:
-    text: str
-    model: Optional[str]
 
 
 def _hash_diff_set(diffs: list[SchemaDiff]) -> str:

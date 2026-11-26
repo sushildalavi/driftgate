@@ -836,14 +836,6 @@ def build_review_provider() -> ReviewProvider:
     return DisabledReviewProvider()
 
 
-def _row_to_dict(row: Any) -> dict[str, Any]:
-    if row is None:
-        return {}
-    if isinstance(row, dict):
-        return dict(row)
-    return {key: row[key] for key in row.keys()}
-
-
 async def _fetch_endpoint_metadata(db: AsyncSession, endpoint_id: str) -> dict[str, Any] | None:
     row = await db.execute(
         text(
@@ -989,23 +981,6 @@ def _consumer_impact_summary(evidence: ContractReviewEvidence) -> str:
     if failed_attempts:
         parts.append(f"{failed_attempts} recorded delivery attempt(s) failed")
     return "; ".join(parts)
-
-
-def _evidence_context_summary(evidence: ContractReviewEvidence) -> str:
-    sections = [
-        f"endpoint={evidence.endpoint_name}",
-        f"route={evidence.http_method} {evidence.route_path}",
-        f"current_version={evidence.current_version if evidence.current_version is not None else 'unknown'}",
-        f"schema_diffs={len(evidence.schema_diffs)}",
-        f"payload_snapshots={len(evidence.payload_snapshots)}",
-        f"validation_failures={len(evidence.validation_failures)}",
-        f"dlq_entries={len(evidence.dlq_entries)}",
-        f"delivery_attempts={len(evidence.delivery_attempts)}",
-        f"drift_violations={len(evidence.drift_violations)}",
-    ]
-    if evidence.notes:
-        sections.append("notes=" + " | ".join(evidence.notes))
-    return "; ".join(sections)
 
 
 async def collect_contract_evidence(
